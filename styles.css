@@ -738,7 +738,7 @@ h1 .hl { color: var(--accent); }
 
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {
-  #main-nav, #main-nav ~ .bar-cta .btn-ghost { display: none; }
+  #main-nav { display: none; }
   .nav-burger { display: inline-flex; }
 }
 @media (max-width: 620px) {
