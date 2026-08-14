@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PrepFusion — GATE, ESE &amp; Placement Preparation for ECE, EE, IN</title>
+<meta name="description" content="GATE, ESE and placement preparation for ECE, EE and IN — taught by AIR holders. Every core subject free forever, the same videos as the paid course." />
+<link rel="icon" href="assets/img/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+/>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<!-- ============================== LANDING ============================== -->
+<div id="s-home">
+
+  <div class="hero">
+    <canvas id="trace" aria-hidden="true"></canvas>
+
+    <header class="bar on-hero" style="position:relative;top:0">
+      <div class="bar-in">
+        <a class="logo" href="#0">Prep<b>Fusion</b></a>
+        <nav class="nav" id="main-nav">
+          <a href="#0" data-external="free">Free Courses</a>
+          <a href="#0" data-external="gate-full">GATE Full Course</a>
+          <a href="#0" data-external="placement">Placement Courses</a>
+          <a href="#0" data-external="subjectwise">GATE Subjectwise Courses</a>
+          <div class="nav-more">
+            <button type="button" class="nav-more-btn" id="more-btn" aria-haspopup="true" aria-expanded="false">
+              More
+              <svg class="nav-more-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="nav-more-panel" id="more-panel" role="menu">
+              <a href="#0" data-external="test" role="menuitem">Test Series</a>
+              <a href="#0" data-external="combo" role="menuitem">GATE Subjectwise Combo Courses</a>
+              <a href="#0" role="menuitem">Study Hub <span class="tag-beta">Beta</span></a>
+              <a href="#0" role="menuitem">Practice GATE PYQs <span class="ext">&#8599;</span></a>
+            </div>
+          </div>
+        </nav>
+        <button type="button" class="nav-burger" id="burger-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-nav">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <div class="bar-cta">
+          <a class="btn btn-ghost btn-sm" href="#0">Sign in</a>
+        </div>
+      </div>
+      <nav class="mobile-nav" id="mobile-nav">
+        <a href="#0" data-external="free">Free Courses</a>
+        <a href="#0" data-external="gate-full">GATE Full Course</a>
+        <a href="#0" data-external="placement">Placement Courses</a>
+        <a href="#0" data-external="subjectwise">GATE Subjectwise Courses</a>
+        <a href="#0" data-external="test">Test Series</a>
+        <a href="#0" data-external="combo">GATE Subjectwise Combo Courses</a>
+        <a href="#0">Study Hub <span class="tag-beta">Beta</span></a>
+        <a href="#0">Practice GATE PYQs <span class="ext">&#8599;</span></a>
+        <a class="btn btn-y" href="#0">Sign in</a>
+      </nav>
+    </header>
+
+    <div class="hero-in">
+      <div class="hero-grid">
+        <div>
+          <span class="kicker"><span class="dot"></span>GATE &middot; Placements &middot; ECE &middot; EE &middot; IN</span>
+          <h1>The complete GATE syllabus, taught by people <span class="hl">who ranked</span>.</h1>
+          <p class="lede">
+            Hundreds of hours of lectures, notes you can print, and a test series built to match the real paper —
+            from two mentors who cleared GATE themselves and have been teaching it ever since.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-green btn-lg" href="#0" data-external="free">Start free &mdash; no card</a>
+            <a class="btn btn-y btn-lg" href="#0" data-external="gate">GATE Courses</a>
+            <a class="btn btn-y btn-lg" href="#0" data-external="placement">Placement Courses</a>
+            <span class="info-ic" aria-label="About these links">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
+            </span>
+          </div>
+        </div>
+
+        <div class="proof">
+          <div class="proof-card">
+            <span class="proof-num">9<small>AIR &middot; EC</small></span>
+            <span class="proof-txt"><b>Mohok Bhaduri, TITANS Batch</b>Test series described as &ldquo;very close to the actual GATE level.&rdquo;</span>
+          </div>
+          <div class="proof-card">
+            <span class="proof-num">950+<small>HOURS</small></span>
+            <span class="proof-txt"><b>Complete syllabus coverage</b>Nothing skipped, nothing rushed &mdash; with downloadable notes for every topic.</span>
+          </div>
+          <div class="proof-card">
+            <span class="proof-num">2<small>MENTORS</small></span>
+            <span class="proof-txt"><b>Both cleared GATE themselves</b>They know exactly where a topic stops making sense, because they once sat where you're sitting.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------------- STATS ---------------- -->
+  <section class="wrap" style="padding-top:44px">
+    <div class="stats">
+      <div class="stat hot"><b>35+</b><span>Students from PrepFusion have secured under <strong>AIR 100</strong></span></div>
+      <div class="stat"><b>950+</b><span>Hours of lectures across the full syllabus</span></div>
+      <div class="stat"><b>AIR 9</b><span>Best rank from the TITANS batch</span></div>
+      <div class="stat"><b>2</b><span>Mentors, both GATE rank holders</span></div>
+    </div>
+  </section>
+
+  <!-- ---------------- RANKERS' INTERVIEW PANEL ---------------- -->
+  <section class="sec wrap">
+    <div class="panel-promo">
+      <div class="panel-promo-txt">
+        <p class="eyebrow">Hear it from them directly</p>
+        <h2 class="sh">The Rankers&rsquo; Interview Panel.</h2>
+        <p class="sub">
+          Conversations with our own students after their result &mdash; how they actually prepared, what they
+          would do differently, and what a GATE rank changed for them. Watch right here.
+        </p>
+        <a class="btn btn-y btn-lg" id="open-rankers" href="https://youtube.com/playlist?list=PLgF7lRh8Xb_WTSnoquK-SpguOz3RePd-V&si=DzVVCGidT0DUs2Sq" style="margin-top:18px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+          Watch the panel
+        </a>
+      </div>
+      <div class="panel-promo-art" aria-hidden="true">
+        <span class="panel-play"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------------- BROWSE BY CATEGORY (Phase 1: redirects to the existing site) ---------------- -->
+  <section class="sec wrap">
+    <p class="eyebrow">Find your course</p>
+    <h2 class="sh">Everything we teach, one click away.</h2>
+    <p class="sub">
+      Courses themselves are still hosted on our original site while the two are being merged &mdash; every
+      link below takes you there.
+    </p>
+    <div class="cat-grid">
+      <a class="cat-card" href="#0" data-external="free">
+        <span class="cat-tag free">Start here</span>
+        <b>Free Courses</b>
+        <span>11 complete subjects, no card needed</span>
+      </a>
+      <a class="cat-card" href="#0" data-external="gate-full">
+        <b>GATE Full Course</b>
+        <span>Pathfinders &amp; Titans, ECE and EE</span>
+      </a>
+      <a class="cat-card" href="#0" data-external="subjectwise">
+        <b>Subject-wise</b>
+        <span>One subject at a time</span>
+      </a>
+      <a class="cat-card" href="#0" data-external="combo">
+        <b>Subject-wise Combos</b>
+        <span>Related subjects bundled together</span>
+      </a>
+      <a class="cat-card" href="#0" data-external="placement">
+        <b>Placement &amp; VLSI</b>
+        <span>Analog, Digital and interview prep</span>
+      </a>
+      <a class="cat-card" href="#0" data-external="test">
+        <b>Test Series</b>
+        <span>Topic, subject and full-length tests</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ---------------- TRANSPARENCY ---------------- -->
+  <section class="sec wrap">
+    <p class="eyebrow">No catch</p>
+    <h2 class="sh">The free course has the same videos as the paid one.</h2>
+    <p class="sub">
+      We don&rsquo;t hold lectures back to force an upgrade. Watch everything, decide if we teach the way you
+      learn, and pay only if you want the parts a video can&rsquo;t give you.
+    </p>
+
+    <div class="trans">
+      <div class="trans-side">
+        <span class="trans-tag f">Free forever</span>
+        <h3>Everything you need to learn</h3>
+        <ul>
+          <li>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <span><b>Complete video lectures</b> &mdash; the full subject, not a sample</span>
+          </li>
+          <li>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <span><b>Downloadable lecture notes</b> for every topic</span>
+          </li>
+          <li>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <span><b>Lifetime access</b> &mdash; rewatch anytime before your exam</span>
+          </li>
+        </ul>
+      </div>
+      <div class="trans-side">
+        <span class="trans-tag p">What you pay for</span>
+        <h3>Everything a video can&rsquo;t do</h3>
+        <ul>
+          <li>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <span><b>A WhatsApp doubt group</b> answered by Himanshu Sir and Anish Sir themselves</span>
+          </li>
+          <li>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <span><b>10+ topic and subject tests</b> per subject, written to GATE standard</span>
+          </li>
+          <li>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <span><b>Guidance on how to prepare</b>, not just what to watch</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------------- BATCH COMPARISON ---------------- -->
+  <section class="sec wrap">
+    <p class="eyebrow">Pick your batch</p>
+    <h2 class="sh">TITANS or Pathfinders &mdash; see the difference.</h2>
+    <p class="sub">
+      Both cover the complete GATE syllabus with the same lecture quality. TITANS is the full-support batch
+      &mdash; the one that produced our AIR 9 &mdash; with placement prep and guidance built in.
+    </p>
+
+    <div class="cmp-wrap">
+      <table class="cmp">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th class="hot">TITANS<span class="flag">Recommended</span></th>
+            <th>Pathfinders</th>
+          </tr>
+        </thead>
+        <tbody id="cmp-body"></tbody>
+      </table>
+    </div>
+
+    <div class="cmp-below">
+      <span>Preparing for a placement or VLSI role instead of GATE? <b>We have a dedicated track for that.</b></span>
+      <a class="btn btn-sm" href="#0" data-external="placement">See Placement &amp; VLSI courses</a>
+    </div>
+  </section>
+
+  <!-- ---------------- MENTORS ---------------- -->
+  <section class="sec wrap">
+    <p class="eyebrow">Who teaches you</p>
+    <h2 class="sh">Two people who've sat where you're sitting.</h2>
+    <p class="sub">Whole GATE ECE is led by Himanshu Sir. GATE EE is led by Anish Sir. Neither is a rotating faculty pool.</p>
+    <div class="mentors">
+      <div class="mentor">
+        <img class="mentor-photo" src="assets/img/himanshu.jpg" alt="Himanshu Agarwal" width="340" height="408" loading="lazy" />
+        <div class="mentor-info">
+          <div class="mentor-id">
+            <div>
+              <h3>Himanshu Agarwal</h3>
+              <span>Leads GATE ECE</span>
+            </div>
+          </div>
+          <div class="ranks">
+            <span class="rank"><b>27</b> AIR &middot; GATE (ECE)</span>
+            <span class="rank"><b>45</b> AIR &middot; GATE (IN)</span>
+            <span class="rank" data-teaching-since="2021-06-01">&nbsp;years teaching</span>
+          </div>
+        </div>
+      </div>
+      <div class="mentor">
+        <img class="mentor-photo" src="assets/img/anish.jpg" alt="Anish Saha" width="340" height="408" loading="lazy" />
+        <div class="mentor-info">
+          <div class="mentor-id">
+            <div>
+              <h3>Anish Saha</h3>
+              <span>Leads GATE EE</span>
+            </div>
+          </div>
+          <div class="ranks">
+            <span class="rank"><b>19</b> AIR &middot; GATE (IN)</span>
+            <span class="rank"><b>66</b> AIR &middot; GATE (EE)</span>
+            <span class="rank" data-teaching-since="2023-06-01">&nbsp;years teaching</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------------- RESULT + QUOTES ---------------- -->
+  <section class="sec wrap">
+    <p class="eyebrow">What came of it</p>
+    <h2 class="sh">Ranks, offers, and admits.</h2>
+
+    <div class="result">
+      <div class="result-air"><b>9</b><span>AIR &middot; GATE EC 2026</span></div>
+      <div class="result-txt">
+        <p>
+          &ldquo;The test series were very close to the actual GATE level and played a crucial role in improving
+          my accuracy, speed, and confidence. The detailed solutions helped me identify my weak areas and
+          systematically improve them.&rdquo;
+        </p>
+        <cite><b>Mohok Bhaduri</b>GATE TITANS batch, ECE</cite>
+      </div>
+    </div>
+
+    <div class="quotes-wrap">
+      <button type="button" class="quotes-nav prev" id="q-prev" aria-label="Previous testimonials">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="quotes" id="quotes"></div>
+      <button type="button" class="quotes-nav next" id="q-next" aria-label="More testimonials">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- ---------------- TRUST ---------------- -->
+  <section class="sec wrap">
+    <p class="eyebrow">Before you pay</p>
+    <h2 class="sh">The things students ask us first.</h2>
+
+    <div class="trust">
+      <div class="trust-item">
+        <span class="trust-ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 6v6c0 5 3.4 9 8 10 4.6-1 8-5 8-10V6Z"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <div><b>Try before you pay</b><span>Every core subject has a free version with the same lectures.</span></div>
+      </div>
+      <div class="trust-item">
+        <span class="trust-ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--wordmark)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>
+        <div><b>UPI, cards, net banking</b><span>Secure checkout. No auto-renewing subscription.</span></div>
+      </div>
+      <div class="trust-item">
+        <span class="trust-ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>
+        <div><b>Doubts answered by mentors</b><span>Himanshu Sir and Anish Sir are in the group themselves.</span></div>
+      </div>
+      <div class="trust-item">
+        <span class="trust-ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg></span>
+        <div><b>Watch on phone or laptop</b><span>Android app available, with offline-friendly notes.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------------- FAQ ---------------- -->
+  <section class="sec wrap">
+    <p class="eyebrow">Questions</p>
+    <h2 class="sh">Everything else worth asking.</h2>
+
+    <div class="faq">
+      <details open>
+        <summary>If the free course has the same videos, why would I pay?</summary>
+        <div class="a">
+          <p>Because lectures are only half of preparing. Paid batches add a WhatsApp doubt group answered by Himanshu Sir and Anish Sir directly, assignments with solved PYQs worked through in class, and on TITANS specifically &mdash; live guidance sessions, 1:1 mentorship and a full test series.</p>
+          <p>If you only need the teaching, take the free course with our blessing. We would rather you learn from us for free than not learn from us at all.</p>
+        </div>
+      </details>
+      <details>
+        <summary>I&rsquo;m starting from zero. Will I be able to follow?</summary>
+        <div class="a"><p>Yes. Every subject is built from fundamentals rather than as revision. Network Theory, for example, spends 13 hours on basics before touching transient analysis. If you have never seen the topic before, start at lecture one.</p></div>
+      </details>
+      <details>
+        <summary>Which branches do you cover?</summary>
+        <div class="a"><p>ECE, EE and IN are fully covered, and BM shares most of the core subjects. General Aptitude and Engineering Mathematics apply to every branch.</p></div>
+      </details>
+      <details>
+        <summary>Are the lectures in Hindi or English?</summary>
+        <div class="a"><p>Both, depending on the course. Each course page lists its mode of communication, and some core subjects &mdash; Network Theory among them &mdash; have a complete Hindi version taught separately, not dubbed.</p></div>
+      </details>
+      <details>
+        <summary>How does doubt-solving actually work?</summary>
+        <div class="a"><p>You're added to a subject-specific WhatsApp or Telegram group &mdash; Analog, Digital, EMFT, Maths &amp; Aptitude, Signals &amp; Systems and more each have their own &mdash; monitored by the mentors, not a support desk. TITANS students also get bi-weekly 1:1 mentorship sessions on top of the group.</p></div>
+      </details>
+      <details>
+        <summary>Can I watch on my phone, and can I download lectures?</summary>
+        <div class="a"><p>Yes &mdash; the site works on any browser, and we have apps for Windows, Mac, iOS and Android. Downloading for offline viewing is available on the Android app only; a few older videos and any YouTube-linked content aren't downloadable.</p></div>
+      </details>
+      <details>
+        <summary>How long do I keep access?</summary>
+        <div class="a"><p>Paid batches list an explicit validity date rather than a rolling subscription &mdash; TITANS runs longer than Pathfinders specifically so it covers the post-result window. Free courses have lifetime access to the videos and notes.</p></div>
+      </details>
+      <details>
+        <summary>Is the test series close to the real paper?</summary>
+        <div class="a"><p>That is the part students mention most. Our AIR 9 from the TITANS batch described them as &ldquo;very close to the actual GATE level,&rdquo; and every question ships with a detailed solution so a wrong answer tells you what to fix.</p></div>
+      </details>
+      <details>
+        <summary>Can I get a refund?</summary>
+        <div class="a"><p>Refunds are governed by our published Refunds &amp; Cancellation Policy, linked in the footer. Since every core subject has a free version with identical lectures, we strongly suggest watching that first &mdash; it is the most honest trial we can offer.</p></div>
+      </details>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <section class="close">
+      <div>
+        <h2>Start with a free subject. Decide after that.</h2>
+        <p>Pick any one of eleven complete subjects, watch it end to end, and see whether we teach the way you learn. No card, no trial timer.</p>
+      </div>
+      <div class="close-act">
+        <a class="btn btn-y btn-lg" href="#0" data-external="free">Start free</a>
+        <a class="btn btn-lg" href="#0" data-external="gate-full" style="background:transparent;border-color:rgba(255,255,255,.32);color:#fff">See all courses</a>
+      </div>
+    </section>
+  </div>
+
+  <footer class="foot">
+    <div class="foot-in">
+      <div class="foot-brand">
+        <a class="logo" href="#0" style="color:var(--ink)">Prep<b>Fusion</b></a>
+        <p>GATE, ESE and placement preparation for ECE, EE and IN &mdash; taught by AIR holders.</p>
+      </div>
+      <div>
+        <h4>Free</h4>
+        <ul>
+          <li><a href="#0" data-external="free">Free courses</a></li>
+          <li><a href="#0">Study Hub</a></li>
+          <li><a href="#0">Practice PYQs</a></li>
+          <li><a href="#0">YouTube &mdash; English</a></li>
+          <li><a href="#0">YouTube &mdash; Hindi</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Courses
+          <span class="info-ic" aria-label="About these links">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
+          </span>
+        </h4>
+        <ul>
+          <li><a href="#0" data-external="gate-full">GATE Full Course</a></li>
+          <li><a href="#0" data-external="subjectwise">Subject-wise</a></li>
+          <li><a href="#0" data-external="combo">Combos</a></li>
+          <li><a href="#0" data-external="placement">Placements &amp; VLSI</a></li>
+          <li><a href="#0" data-external="test">Test Series</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#0">About</a></li>
+          <li><a href="#0">Terms &amp; Conditions</a></li>
+          <li><a href="#0">Privacy Policy</a></li>
+          <li><a href="#0">Refunds &amp; Cancellation</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <div>
+        <span>&copy; 2026 PrepFusion</span>
+        <span>7980452273</span>
+        <span class="sp">prepfusion.edu.contact@gmail.com</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ==================== RANKERS' INTERVIEW PANEL OVERLAY ==================== -->
+<div class="vid-scrim" id="vid-scrim">
+  <div class="vid-sheet" role="dialog" aria-label="Rankers' Interview Panel">
+    <div class="vid-sheet-head">
+      <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path fill="#e02f2f" d="M21.6 7.2a2.5 2.5 0 0 0-1.7-1.8C18.3 5 12 5 12 5s-6.3 0-7.9.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.7 1.8C5.7 19 12 19 12 19s6.3 0 7.9-.4a2.5 2.5 0 0 0 1.7-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8Z"/><path fill="#fff" d="M10 15V9l5 3-5 3Z"/></svg>
+      <h3>Rankers&rsquo; Interview Panel</h3>
+      <button type="button" class="vid-sheet-x" id="vid-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="vid-frame-wrap" id="vid-frame-wrap"></div>
+  </div>
+</div>
+<script src="script.js" defer></script>
+</body>
+</html>
