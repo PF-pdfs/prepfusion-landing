@@ -614,22 +614,31 @@ h1 .hl { color: var(--accent); }
    ========================================================================= */
 .cmp-wrap { overflow-x: auto; margin-top: 30px; border-radius: var(--radius); box-shadow: var(--shadow); }
 .cmp {
+  /* No overflow:hidden here — it was clipping table cells into their own
+     scroll/containing-block context, which silently breaks position:sticky
+     on the row-label column below (sticky needs to track .cmp-wrap's own
+     scroll, not get trapped inside the table's). .cmp-wrap's overflow-x
+     already clips the rounded corners, so nothing is lost visually. */
   width: 100%; min-width: 560px; border-collapse: separate; border-spacing: 0;
-  background: var(--card); border: 1.5px solid var(--line);
-  border-radius: var(--radius); overflow: hidden;
+  background: var(--card); border: 1.5px solid var(--line); border-radius: var(--radius);
 }
 .cmp th, .cmp td { padding: 13px 18px; text-align: center; border-bottom: 1px solid var(--line); }
 .cmp thead th {
   font: 700 12px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase;
   padding: 16px 18px; color: var(--ink-soft); background: var(--chipbg);
 }
-.cmp thead th:first-child { text-align: left; }
+.cmp thead th:first-child { text-align: left; position: sticky; left: 0; z-index: 2; }
 .cmp thead th.hot { color: #0a1020; background: var(--accent); position: relative; }
 .cmp thead th.hot .flag {
   display: block; font: 700 9.5px/1 var(--mono); letter-spacing: .08em; margin-top: 4px; opacity: .78;
 }
 .cmp tbody th {
   text-align: left; font: 600 13.5px var(--sans); color: var(--ink); white-space: nowrap;
+  /* Sticky so the row label stays visible once the table's horizontal
+     scroll (needed at mobile widths) carries TITANS/Pathfinders past the
+     edge — otherwise a scrolled-in Yes/No has no visible row to belong to. */
+  position: sticky; left: 0; z-index: 1; background: var(--card);
+  box-shadow: 1px 0 0 var(--line);
 }
 .cmp tbody tr:last-child td, .cmp tbody tr:last-child th { border-bottom: 0; }
 .cmp td.hotcol { background: rgba(255,207,45,.07); }
