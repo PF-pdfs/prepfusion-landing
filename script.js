@@ -203,23 +203,102 @@
 
   /* ---------------- rankers' interview panel overlay ----------------
      Same "stay on our site" pattern as the header YouTube overlay (Feature 1):
-     opens in place over the page rather than sending students away. */
-  var RANKERS_PLAYLIST = 'PLgF7lRh8Xb_WTSnoquK-SpguOz3RePd-V';
+     opens in place over the page rather than sending students away.
+
+     YouTube's own playlist-embed sidebar turned out to be the actual bug
+     students hit — it's collapsed behind a small, easy-to-miss icon, so
+     "watch the panel" looked like it only ever played one video. Fixed by
+     not relying on it at all: this is our own visible, clickable strip
+     driving single-video embeds instead. The 39 entries below are a
+     snapshot of the real playlist (id + a label built from each video's
+     own title) pulled via YouTube's public playlist page — there's no
+     API-key sync for this one-off list, so if the playlist grows this
+     array needs a manual refresh. */
+  var RANKERS_VIDEOS = [
+    { id: 'VckH84A3QPg', label: 'AIR 7 EC' },
+    { id: 'MhQNH1HAS_4', label: 'AIR 1 IN, AIR 4 EC — Raja Majhi' },
+    { id: '4jampvRkASk', label: 'AIR 9' },
+    { id: '_g_tQujRN2g', label: 'AIR 22 EC' },
+    { id: '6vkCPQS3c-c', label: 'AIR 42 EE' },
+    { id: 'N5wP05_D-gU', label: 'AIR 49 EE, AIR 88 IN' },
+    { id: 'yFMB1AthJBQ', label: 'AIR 19 IN, AIR 31 EC' },
+    { id: 'Naisd7XHq_g', label: 'AIR 80' },
+    { id: 'tBdpNxv4EjE', label: 'AIR 85 EE, AIR 108 EC' },
+    { id: '_W7JqF5reLg', label: 'AIR 43 IN, AIR 89 EC' },
+    { id: 'waWw-B9mqI0', label: 'AIR 28 IN' },
+    { id: '6F1ZJbljYAY', label: 'AIR 116 EE' },
+    { id: 'ocrsAm1kN4E', label: 'AIR 109 EE' },
+    { id: 'yP20gS_oHz8', label: 'AIR 31 ECE' },
+    { id: 'KMfx2a6QaBY', label: 'AIR 89 ECE' },
+    { id: 'AATqV5LaL24', label: 'AIR 154 EE' },
+    { id: 'k4t4Wlf7IJo', label: 'AIR 159 EE' },
+    { id: 'JmxotSEeg-o', label: 'AIR 82 IN, AIR 423 ECE' },
+    { id: 'Z2E0ekjwC9A', label: 'AIR 319 ECE' },
+    { id: 'ZfMrFhJ1brc', label: 'AIR 75 ECE' },
+    { id: '1VdEbQqbGjo', label: 'AIR 61 ECE, AIR 68 IN' },
+    { id: '3Nms4yVhp_A', label: 'AIR 46 EC & AIR 41 IN' },
+    { id: 'xn8oNW0TiAk', label: 'AIR 101 ECE' },
+    { id: '-oK51Coauik', label: 'AIR 134 ECE' },
+    { id: '86P09ZUJPEY', label: 'AIR 203 ECE' },
+    { id: 'bBsnfUnZmyg', label: 'AIR 246 EE' },
+    { id: 'sEuUcBzHS6U', label: 'AIR 281 ECE' },
+    { id: 'Ny2QKdpABKo', label: 'AIR 288 EE' },
+    { id: '1M8t0I-9oc8', label: 'AIR 178 EE' },
+    { id: 'dhbTAUyQLes', label: 'AIR 355 ECE' },
+    { id: 'QXSjnd6_acc', label: 'AIR 484 ECE' },
+    { id: 'WpdA-XiFrtE', label: 'AIR 4 DA, AIR 34 EE' },
+    { id: 'RdkubCXfZJ4', label: 'AIR 28 IN, AIR 204 EE' },
+    { id: 'aB8-43RRkKc', label: 'AIR 26 IN, AIR 408 EE' },
+    { id: 'avtLWUDtAM0', label: 'AIR 82 IN' },
+    { id: 'NSBwJGoZ4dk', label: 'AIR 278 EE' },
+    { id: '5V095M1YvK8', label: 'AIR 484 ECE' },
+    { id: 'v9_ZqNpFj0k', label: 'AIR 37 ECE' },
+    { id: 'dusPR_4yXOo', label: 'AIR 471 EE' }
+  ];
+
   var vidScrim = document.getElementById('vid-scrim');
   var vidWrap = document.getElementById('vid-frame-wrap');
+  var rankersStrip = document.getElementById('rankers-strip');
   var openRankersBtn = document.getElementById('open-rankers');
   var vidCloseBtn = document.getElementById('vid-close');
+  var rankersIndex = 0;
 
-  function openRankers() {
+  function playRankers(i) {
+    rankersIndex = i;
+    var v = RANKERS_VIDEOS[i];
     var iframe = document.createElement('iframe');
-    iframe.src = 'https://www.youtube-nocookie.com/embed/videoseries?list=' + RANKERS_PLAYLIST;
-    iframe.title = "Rankers' Interview Panel";
-    iframe.loading = 'lazy';
-    iframe.allow = 'accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    iframe.src = 'https://www.youtube-nocookie.com/embed/' + v.id + '?autoplay=1&rel=0';
+    iframe.title = "Rankers' Interview — " + v.label;
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
     iframe.referrerPolicy = 'strict-origin-when-cross-origin';
     iframe.allowFullscreen = true;
     vidWrap.innerHTML = '';
     vidWrap.appendChild(iframe);
+    rankersStrip.querySelectorAll('.rankers-item').forEach(function (el, idx) {
+      el.setAttribute('aria-current', idx === i ? 'true' : 'false');
+    });
+    var current = rankersStrip.querySelector('[aria-current="true"]');
+    if (current) current.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  function openRankers() {
+    if (!rankersStrip.childElementCount) {
+      RANKERS_VIDEOS.forEach(function (v, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'rankers-item';
+        b.setAttribute('aria-current', 'false');
+        b.innerHTML =
+          '<span class="rankers-thumb">' +
+            '<img src="https://i.ytimg.com/vi/' + v.id + '/mqdefault.jpg" alt="" loading="lazy" />' +
+            '<span class="rankers-play"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>' +
+          '</span>' +
+          '<span class="rankers-label">' + v.label + '</span>';
+        b.addEventListener('click', function () { playRankers(i); });
+        rankersStrip.appendChild(b);
+      });
+    }
+    playRankers(0);
     vidScrim.classList.add('on');
   }
   function closeRankers() {
