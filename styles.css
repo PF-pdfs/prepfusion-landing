@@ -75,11 +75,12 @@
     --bad: #ff8a80;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 30px -14px rgba(0, 0, 0, 0.75);
     --shadow-lift: 0 3px 8px rgba(0, 0, 0, 0.55), 0 26px 50px -18px rgba(0, 0, 0, 0.9);
-    /* Richer/lighter than the page's own near-black --paper (#0a1020) —
-       these blocks need to read as a distinct accent surface, not blend
-       into the dark page. */
-    --deep: #2a4fb0;
-    --deep-2: #16296b;
+    /* Dark mode's original near-black tone (it was already good — the real
+       bug was only that light mode was stuck showing this same dark value
+       instead of its own lighter navy). Still a hair richer than the page's
+       own --paper (#0a1020) so the section reads as distinct, not blended. */
+    --deep: #101d42;
+    --deep-2: #05070f;
   }
 }
 :root[data-theme='dark'] {
@@ -91,8 +92,8 @@
   --ok-bg: #17301f; --warn: #f0c26a; --bad: #ff8a80;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 30px -14px rgba(0, 0, 0, 0.75);
   --shadow-lift: 0 3px 8px rgba(0, 0, 0, 0.55), 0 26px 50px -18px rgba(0, 0, 0, 0.9);
-  --deep: #2a4fb0;
-  --deep-2: #16296b;
+  --deep: #101d42;
+  --deep-2: #05070f;
 }
 :root[data-theme='light'] {
   color-scheme: light;
