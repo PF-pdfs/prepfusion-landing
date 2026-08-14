@@ -387,20 +387,20 @@ h1 .hl { color: var(--accent); }
   color: var(--ink-faint); cursor: help;
 }
 .info-ic svg { width: 100%; height: 100%; }
+/* position:fixed, JS-placed — not absolute+centered. A 236px tooltip
+   centered on an icon that sits near a narrow mobile column edge (the
+   footer instance in particular) runs straight off the viewport, and
+   hover alone never fires reliably on touch anyway. JS computes a
+   clamped, on-screen position and toggles .tip.show on tap as well as
+   hover/focus, so it actually works on a phone. */
 .info-ic .tip {
-  position: absolute; bottom: calc(100% + 9px); left: 50%; transform: translateX(-50%) translateY(3px);
-  width: 236px; background: var(--ink); color: var(--paper); font: 500 12px/1.5 var(--sans);
+  position: fixed; width: 224px; max-width: calc(100vw - 24px);
+  background: var(--ink); color: var(--paper); font: 500 12px/1.5 var(--sans);
   padding: 10px 12px; border-radius: 10px; box-shadow: var(--shadow-lift);
-  opacity: 0; pointer-events: none; transition: opacity .14s, transform .14s; z-index: 40;
+  opacity: 0; pointer-events: none; transition: opacity .14s; z-index: 90;
   text-align: left;
 }
-.info-ic .tip::after {
-  content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-  border: 6px solid transparent; border-top-color: var(--ink);
-}
-.info-ic:hover .tip, .info-ic:focus-visible .tip {
-  opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto;
-}
+.info-ic .tip.show { opacity: 1; pointer-events: auto; }
 .hero .info-ic { color: rgba(255,255,255,.55); align-self: center; }
 .hero .info-ic:hover, .hero .info-ic:focus-visible { color: #fff; }
 
@@ -702,7 +702,7 @@ h1 .hl { color: var(--accent); }
 }
 @media (max-width: 620px) {
   .mentor { grid-template-columns: minmax(0,1fr); }
-  .mentor-photo { min-height: 240px; }
+  .mentor-photo { min-height: 180px; max-height: 220px; }
   .cmp-below { grid-template-columns: minmax(0,1fr); text-align: left; }
   .cmp-below .btn { width: 100%; }
 }

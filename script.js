@@ -148,6 +148,19 @@
 
   var INFO_TIP = 'Course pages are still powered by a separate system behind the scenes while the two are being unified. ' +
     'You may need a separate account there for now — using the same email is a good idea, so we can link them later.';
+
+  function placeTip(ic, tip) {
+    var r = ic.getBoundingClientRect();
+    tip.style.left = '0px'; tip.style.top = '0px'; /* reset so its own width isn't measured mid-clamp */
+    var tw = tip.offsetWidth;
+    var left = r.left + r.width / 2 - tw / 2;
+    left = Math.max(12, Math.min(left, window.innerWidth - tw - 12));
+    var above = r.top - tip.offsetHeight - 10;
+    var top = above > 8 ? above : r.bottom + 10; /* flip below if there's no room above */
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  }
+
   document.querySelectorAll('.info-ic').forEach(function (ic) {
     var tip = document.createElement('span');
     tip.className = 'tip';
@@ -155,6 +168,22 @@
     tip.textContent = INFO_TIP;
     ic.appendChild(tip);
     ic.setAttribute('tabindex', '0');
+
+    function show() { placeTip(ic, tip); tip.classList.add('show'); }
+    function hide() { tip.classList.remove('show'); }
+
+    ic.addEventListener('mouseenter', show);
+    ic.addEventListener('mouseleave', hide);
+    ic.addEventListener('focus', show);
+    ic.addEventListener('blur', hide);
+    // Tap-to-toggle for touch, where hover/focus don't reliably fire at all.
+    ic.addEventListener('click', function (e) {
+      e.stopPropagation();
+      tip.classList.contains('show') ? hide() : show();
+    });
+  });
+  document.addEventListener('click', function () {
+    document.querySelectorAll('.info-ic .tip.show').forEach(function (t) { t.classList.remove('show'); });
   });
 
   /* ---------------- header nav: "More" dropdown + mobile drawer ---------------- */
