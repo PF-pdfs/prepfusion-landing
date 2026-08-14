@@ -109,6 +109,19 @@
 }
 
 * { box-sizing: border-box; }
+
+/* `color-scheme` alone only gets a generic OS light/dark scrollbar keyword
+   — grey either way, never the site's own navy — so it always reads as an
+   unstyled default strip, most noticeably right where it runs past the
+   blue hero. Matching it to the actual page tokens makes it look chosen,
+   not left over. scrollbar-color covers Firefox/modern Chromium; the
+   -webkit- pseudo-elements cover Safari, which ignores scrollbar-color. */
+html { scrollbar-color: var(--line-strong) var(--paper); scrollbar-width: thin; }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: var(--paper); }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 8px; border: 3px solid var(--paper); }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-faint); }
+
 body {
   margin: 0;
   background: var(--paper);
@@ -581,7 +594,15 @@ h1 .hl { color: var(--accent); }
   font-variant-numeric: tabular-nums;
 }
 .stat span { font: 500 13px var(--sans); color: var(--ink-soft); }
-.stat.hot { background: linear-gradient(150deg, var(--deep), var(--deep-2)); }
+/* Pulled visually out of the shared hairline-divided strip — flush navy
+   against flush white with only a 1px line between them read as a broken
+   seam, not an intentional highlight (worst in light mode, where the plain
+   cards are pure white). Its own radius/shadow/margin makes it unambiguously
+   a separate callout card instead. */
+.stat.hot {
+  background: linear-gradient(150deg, var(--deep), var(--deep-2));
+  margin: 4px; border-radius: calc(var(--radius) - 4px); box-shadow: var(--shadow-lift);
+}
 .stat.hot b { color: var(--accent); }
 .stat.hot span { color: rgba(255,255,255,.82); }
 .stat.hot span strong { color: #fff; font-weight: 700; }
