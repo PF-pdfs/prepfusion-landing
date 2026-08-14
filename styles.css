@@ -347,19 +347,30 @@ h1 .hl { color: var(--accent); }
 }
 /* a small stack of "video cards" (not one empty box) — the whole point is
    to read as a playlist of several interviews, not a single clip */
+/* A real button, not a decorative graphic — clicking it opens the same
+   overlay as "Watch the panel", and each card shows an actual thumbnail
+   from the playlist rather than an empty gradient with a play icon. */
 .panel-promo-art {
   position: relative; z-index: 1; aspect-ratio: 16/10; display: grid; place-items: center;
+  border: 0; background: none; padding: 0; cursor: pointer;
+}
+.panel-promo-art:hover .stack-card.sc3, .panel-promo-art:focus-visible .stack-card.sc3 {
+  transform: scale(1.03);
 }
 .stack-card {
   position: absolute; width: 74%; aspect-ratio: 16/10; border-radius: 14px;
   display: grid; place-items: center; border: 1px solid rgba(255,255,255,.16);
   box-shadow: 0 14px 30px -14px rgba(0,0,0,.6);
+  background-size: cover; background-position: center;
 }
-.stack-card.sc1 { background: linear-gradient(150deg, #2a3f7a, #10193d); transform: rotate(-9deg) translate(-14%, 4%); opacity: .75; }
-.stack-card.sc2 { background: linear-gradient(150deg, #223469, #0d1633); transform: rotate(6deg) translate(12%, -2%); opacity: .88; }
+.stack-card.sc1 { background-image: var(--thumb); transform: rotate(-9deg) translate(-14%, 4%); opacity: .8; }
+.stack-card.sc2 { background-image: var(--thumb); transform: rotate(6deg) translate(12%, -2%); opacity: .9; }
 .stack-card.sc3 {
-  background: linear-gradient(150deg, #1c3a8f, #0b1128); border-color: rgba(255,255,255,.28);
+  border-color: rgba(255,255,255,.28);
   flex-direction: column; gap: 8px; z-index: 1;
+  transition: transform .2s cubic-bezier(.22,1,.36,1);
+  /* dark wash over the thumbnail so the white play icon / label stay legible */
+  background-image: linear-gradient(rgba(8,14,30,.32), rgba(8,14,30,.62)), var(--thumb);
 }
 .stack-card.sc3 svg { filter: drop-shadow(0 4px 10px rgba(0,0,0,.4)); }
 .stack-card.sc3 em {

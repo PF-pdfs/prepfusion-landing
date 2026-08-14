@@ -289,6 +289,7 @@
   var vidWrap = document.getElementById('vid-frame-wrap');
   var rankersStrip = document.getElementById('rankers-strip');
   var openRankersBtn = document.getElementById('open-rankers');
+  var openRankersArt = document.getElementById('open-rankers-art');
   var vidCloseBtn = document.getElementById('vid-close');
   var rankersIndex = 0;
 
@@ -296,7 +297,7 @@
     rankersIndex = i;
     var v = RANKERS_VIDEOS[i];
     var iframe = document.createElement('iframe');
-    iframe.src = 'https://www.youtube-nocookie.com/embed/' + v.id + '?autoplay=1&rel=0';
+    iframe.src = 'https://www.youtube-nocookie.com/embed/' + v.id + '?rel=0';
     iframe.title = "Rankers' Interview — " + v.label;
     iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
     iframe.referrerPolicy = 'strict-origin-when-cross-origin';
@@ -335,6 +336,7 @@
     vidWrap.innerHTML = ''; /* unmount so the video actually stops playing */
   }
   if (openRankersBtn) openRankersBtn.addEventListener('click', function (e) { e.preventDefault(); openRankers(); });
+  if (openRankersArt) openRankersArt.addEventListener('click', openRankers);
   vidCloseBtn.addEventListener('click', closeRankers);
   vidScrim.addEventListener('click', function (e) { if (e.target === vidScrim) closeRankers(); });
   document.addEventListener('keydown', function (e) {
@@ -348,7 +350,8 @@
     var years = now.getFullYear() - since.getFullYear() -
       ((now.getMonth() < since.getMonth() || (now.getMonth() === since.getMonth() && now.getDate() < since.getDate())) ? 1 : 0);
     years = Math.max(1, years);
-    el.innerHTML = '<b>' + years + '+</b>&nbsp;years teaching';
+    var label = el.getAttribute('data-teaching-label') || 'years teaching';
+    el.innerHTML = '<b>' + years + '+</b>&nbsp;' + label;
   });
 
   /* ---------------- TITANS vs Pathfinders comparison ----------------
