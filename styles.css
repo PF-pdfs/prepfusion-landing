@@ -41,6 +41,11 @@
      background fill — using it was the bug that washed these blocks out. */
   --deep: #122b73;
   --deep-2: #0a1848;
+  /* Same reasoning as --deep: fixed, not the themed --ok token, which
+     intentionally goes pale-mint in dark mode for text/status use and
+     looked washed out as a solid button fill. */
+  --green: #14a85a;
+  --green-2: #0c7d40;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -158,8 +163,14 @@ a { color: inherit; }
 .nav-more-btn:hover, .nav-more-btn[aria-expanded='true'] { color: #fff; background: rgba(255,255,255,0.10); }
 .nav-more-chev { transition: transform .15s; opacity: .7; }
 .nav-more-btn[aria-expanded='true'] .nav-more-chev { transform: rotate(180deg); }
+/* position:fixed, not absolute — .nav has overflow-x:auto (needed so it can
+   scroll sideways instead of wrapping on narrower desktop widths), and per
+   spec that implicitly sets overflow-y to auto too, which would silently
+   clip an absolutely-positioned child the moment it extends past the row.
+   Fixed means the scrolling ancestor can't clip it; coordinates come from
+   the button's own rect, computed in JS when it opens. */
 .nav-more-panel {
-  position: absolute; top: calc(100% + 8px); right: 0; z-index: 70; min-width: 220px;
+  position: fixed; z-index: 70; min-width: 220px;
   background: var(--card); border: 1.5px solid var(--line-strong); border-radius: 12px;
   box-shadow: var(--shadow-lift); padding: 6px; display: none; flex-direction: column; gap: 2px;
 }
@@ -171,6 +182,22 @@ a { color: inherit; }
 .nav-more-panel a:hover { background: var(--chipbg); }
 
 .bar-cta { display: flex; align-items: center; gap: 9px; }
+
+/* theme toggle — mirrors the .tt pattern already used in the real app's
+   SiteHeader.jsx, so it doesn't feel like a bolted-on new control */
+.tt {
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid rgba(255,255,255,.28); background: transparent; color: #fff; cursor: pointer;
+}
+.tt:hover { background: rgba(255,255,255,.10); }
+.tt .i-sun { display: none; }
+:root[data-theme='dark'] .tt .i-moon { display: none; }
+:root[data-theme='dark'] .tt .i-sun { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .tt .i-moon { display: none; }
+  :root:not([data-theme='light']) .tt .i-sun { display: block; }
+}
 
 /* ---------- mobile hamburger + drawer ---------- */
 .nav-burger {
@@ -208,8 +235,8 @@ a { color: inherit; }
 .btn-y:hover { background: var(--accent); filter: brightness(1.06); box-shadow: 0 10px 26px -10px rgba(255,207,45,.7); }
 .btn-ghost { background: transparent; border-color: rgba(255,255,255,.28); color: #fff; }
 .btn-ghost:hover { background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.45); }
-.btn-green { background: var(--ok); border-color: var(--ok); color: #fff; }
-.btn-green:hover { background: var(--ok); filter: brightness(1.1); box-shadow: 0 10px 26px -10px rgba(29,107,51,.6); }
+.btn-green { background: linear-gradient(155deg, var(--green), var(--green-2)); border-color: var(--green-2); color: #fff; }
+.btn-green:hover { filter: brightness(1.12); box-shadow: 0 10px 26px -10px rgba(12,125,64,.65); }
 .btn-sm { font-size: 13px; padding: 9px 14px; border-radius: 10px; }
 .btn-lg { font-size: 15.5px; padding: 14px 24px; border-radius: 13px; }
 
@@ -289,14 +316,29 @@ h1 .hl { color: var(--accent); }
 .panel-promo .eyebrow::before { background: var(--accent); }
 .panel-promo h2.sh { color: #fff; }
 .panel-promo .sub { color: var(--hero-soft); }
-.panel-promo-art {
-  position: relative; z-index: 1; aspect-ratio: 16/10; border-radius: 16px;
-  background: linear-gradient(150deg, #1c3a8f, #0b1128); display: grid; place-items: center;
-  border: 1px solid rgba(255,255,255,.14);
+.panel-promo-note {
+  margin: 12px 0 0; font: 500 13px/1.5 var(--sans); color: rgba(169,184,214,.75); max-width: 40ch;
 }
-.panel-play {
-  width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,.14);
-  border: 1.5px solid rgba(255,255,255,.35); display: grid; place-items: center; padding-left: 3px;
+/* a small stack of "video cards" (not one empty box) — the whole point is
+   to read as a playlist of several interviews, not a single clip */
+.panel-promo-art {
+  position: relative; z-index: 1; aspect-ratio: 16/10; display: grid; place-items: center;
+}
+.stack-card {
+  position: absolute; width: 74%; aspect-ratio: 16/10; border-radius: 14px;
+  display: grid; place-items: center; border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 14px 30px -14px rgba(0,0,0,.6);
+}
+.stack-card.sc1 { background: linear-gradient(150deg, #2a3f7a, #10193d); transform: rotate(-9deg) translate(-14%, 4%); opacity: .75; }
+.stack-card.sc2 { background: linear-gradient(150deg, #223469, #0d1633); transform: rotate(6deg) translate(12%, -2%); opacity: .88; }
+.stack-card.sc3 {
+  background: linear-gradient(150deg, #1c3a8f, #0b1128); border-color: rgba(255,255,255,.28);
+  flex-direction: column; gap: 8px; z-index: 1;
+}
+.stack-card.sc3 svg { filter: drop-shadow(0 4px 10px rgba(0,0,0,.4)); }
+.stack-card.sc3 em {
+  font-style: normal; font: 700 10.5px/1 var(--mono); letter-spacing: .09em; text-transform: uppercase;
+  color: var(--accent);
 }
 
 /* =========================================================================
@@ -525,12 +567,16 @@ h1 .hl { color: var(--accent); }
 .cmp-chip { display: inline-flex; align-items: center; gap: 7px; font: 600 12.5px var(--sans); color: var(--ink-soft); white-space: nowrap; }
 
 .cmp-below {
-  margin-top: 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 16px 20px;
+  margin-top: 22px; display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 22px; align-items: center;
+  background: var(--card); border: 1.5px solid var(--line-strong); border-left: 5px solid var(--accent);
+  border-radius: var(--radius); padding: 24px 28px; box-shadow: var(--shadow);
 }
-.cmp-below span { font-size: 14px; color: var(--ink-soft); }
-.cmp-below span b { color: var(--ink); }
-.cmp-below .btn { margin-left: auto; }
+.cmp-below-ic {
+  width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
+  background: var(--chipbg); color: var(--accent-ink); display: grid; place-items: center;
+}
+.cmp-below h3 { font: 700 18px/1.3 var(--display); letter-spacing: -.02em; margin: 0 0 5px; }
+.cmp-below p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink-soft); max-width: 56ch; }
 
 /* =========================================================================
    FAQ — objection handling
@@ -606,6 +652,8 @@ h1 .hl { color: var(--accent); }
 @media (max-width: 620px) {
   .mentor { grid-template-columns: minmax(0,1fr); }
   .mentor-photo { min-height: 240px; }
+  .cmp-below { grid-template-columns: minmax(0,1fr); text-align: left; }
+  .cmp-below .btn { width: 100%; }
 }
 @media (max-width: 940px) {
   .tiers { grid-template-columns: minmax(0,1fr); }

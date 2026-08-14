@@ -6,6 +6,16 @@
 <title>PrepFusion — GATE, ESE &amp; Placement Preparation for ECE, EE, IN</title>
 <meta name="description" content="GATE, ESE and placement preparation for ECE, EE and IN — taught by AIR holders. Every core subject free forever, the same videos as the paid course." />
 <link rel="icon" href="assets/img/favicon.png" />
+<script>
+  /* Blocking, on purpose: sets the saved theme before first paint so there's
+     no flash of the wrong theme while the deferred script.js loads. */
+  (function () {
+    try {
+      var saved = localStorage.getItem('pf-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+    } catch (err) { /* storage blocked — falls back to prefers-color-scheme */ }
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
@@ -46,6 +56,10 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
         <div class="bar-cta">
+          <button type="button" class="tt" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+            <svg class="i-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+            <svg class="i-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          </button>
           <a class="btn btn-ghost btn-sm" href="#0">Sign in</a>
         </div>
       </div>
@@ -72,7 +86,7 @@
             from two mentors who cleared GATE themselves and have been teaching it ever since.
           </p>
           <div class="hero-cta">
-            <a class="btn btn-green btn-lg" href="#0" data-external="free">Start free &mdash; no card</a>
+            <a class="btn btn-green btn-lg" href="#0" data-external="free">Start free &mdash; no strings attached</a>
             <a class="btn btn-y btn-lg" href="#0" data-external="gate">GATE Courses</a>
             <a class="btn btn-y btn-lg" href="#0" data-external="placement">Placement Courses</a>
             <span class="info-ic" aria-label="About these links">
@@ -123,9 +137,15 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
           Watch the panel
         </a>
+        <p class="panel-promo-note">Opens the full playlist right here &mdash; use the queue icon in the corner of the player to jump between interviews.</p>
       </div>
       <div class="panel-promo-art" aria-hidden="true">
-        <span class="panel-play"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+        <span class="stack-card sc1"><svg width="15" height="15" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+        <span class="stack-card sc2"><svg width="15" height="15" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+        <span class="stack-card sc3">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          <em>Full playlist</em>
+        </span>
       </div>
     </div>
   </section>
@@ -239,8 +259,14 @@
     </div>
 
     <div class="cmp-below">
-      <span>Preparing for a placement or VLSI role instead of GATE? <b>We have a dedicated track for that.</b></span>
-      <a class="btn btn-sm" href="#0" data-external="placement">See Placement &amp; VLSI courses</a>
+      <span class="cmp-below-ic">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+      </span>
+      <div>
+        <h3>Preparing for a placement or VLSI role instead?</h3>
+        <p>Analog and Digital VLSI mastery, Campus-to-Core interview prep and a dedicated placement test series &mdash; built for screening tests and interviews, not the GATE paper.</p>
+      </div>
+      <a class="btn btn-y btn-lg" href="#0" data-external="placement">See Placement &amp; VLSI courses</a>
     </div>
   </section>
 

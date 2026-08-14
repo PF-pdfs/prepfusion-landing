@@ -1,6 +1,24 @@
 (function () {
   'use strict';
 
+  /* ---------------- theme toggle, persisted ---------------- */
+  var THEME_KEY = 'pf-theme';
+  var themeBtn = document.getElementById('theme-toggle');
+  if (themeBtn) {
+    var saved = null;
+    try { saved = localStorage.getItem(THEME_KEY); } catch (err) { /* storage blocked — fall back to system */ }
+    if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+
+    themeBtn.addEventListener('click', function () {
+      var current = document.documentElement.getAttribute('data-theme');
+      var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var isDark = current ? current === 'dark' : systemDark;
+      var next = isDark ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem(THEME_KEY, next); } catch (err) { /* storage blocked, theme still applies this visit */ }
+    });
+  }
+
   /* ---------------- hero: second-order step response ----------------
      y(t) = 1 - e^(-ζωt)(cos ωd t + ζ/√(1-ζ²) sin ωd t) — an underdamped
      system overshooting once and settling. Control Systems is a course
@@ -145,8 +163,15 @@
   if (moreBtn && morePanel) {
     moreBtn.addEventListener('click', function (e) {
       e.stopPropagation();
-      var open = morePanel.classList.toggle('on');
-      moreBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      var opening = !morePanel.classList.contains('on');
+      if (opening) {
+        var r = moreBtn.getBoundingClientRect();
+        morePanel.style.top = (r.bottom + 8) + 'px';
+        morePanel.style.left = 'auto';
+        morePanel.style.right = (window.innerWidth - r.right) + 'px';
+      }
+      morePanel.classList.toggle('on', opening);
+      moreBtn.setAttribute('aria-expanded', opening ? 'true' : 'false');
     });
     document.addEventListener('click', function (e) {
       if (!morePanel.contains(e.target) && e.target !== moreBtn) {
