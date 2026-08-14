@@ -356,8 +356,8 @@
     var validityTr = document.createElement('tr');
     validityTr.innerHTML =
       '<th scope="row">Course Validity</th>' +
-      '<td class="hotcol val">30 Jun 2027</td>' +
-      '<td class="val">31 Mar 2027</td>';
+      '<td class="hotcol val">3 months longer</td>' +
+      '<td class="val">Runs through the exam</td>';
     cmpBody.appendChild(validityTr);
   }
 

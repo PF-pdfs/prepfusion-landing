@@ -34,11 +34,14 @@
   --mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
   --hero-ink: #f2f6ff;
   --hero-soft: #a9b8d6;
-  /* Fixed, NOT redefined per theme — for "always-dark" brand-moment blocks
-     (stat callouts, the closing CTA) that must stay a deep navy regardless
-     of light/dark mode. --brand itself flips to a pale accent in dark mode
-     (it's meant for text/links there), so it's the wrong token for a
-     background fill — using it was the bug that washed these blocks out. */
+  /* For the "bold navy" brand-moment blocks (hero, Rankers panel, closing
+     CTA, the 35+ stat card, mobile nav drawer): a deliberately different
+     pair of tokens from --brand, which flips to a pale accent in dark mode
+     for text/link use — using --brand as a background fill was the earlier
+     bug that washed these blocks out to near-white. --deep/--deep-2 ARE
+     redefined per theme below (light default here), so the toggle still
+     visibly changes them — just always as a rich navy, never a pastel and
+     never identical to the plain page background either theme. */
   --deep: #122b73;
   --deep-2: #0a1848;
   /* Same reasoning as --deep: fixed, not the themed --ok token, which
@@ -72,6 +75,11 @@
     --bad: #ff8a80;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 30px -14px rgba(0, 0, 0, 0.75);
     --shadow-lift: 0 3px 8px rgba(0, 0, 0, 0.55), 0 26px 50px -18px rgba(0, 0, 0, 0.9);
+    /* Richer/lighter than the page's own near-black --paper (#0a1020) —
+       these blocks need to read as a distinct accent surface, not blend
+       into the dark page. */
+    --deep: #2a4fb0;
+    --deep-2: #16296b;
   }
 }
 :root[data-theme='dark'] {
@@ -83,6 +91,8 @@
   --ok-bg: #17301f; --warn: #f0c26a; --bad: #ff8a80;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 30px -14px rgba(0, 0, 0, 0.75);
   --shadow-lift: 0 3px 8px rgba(0, 0, 0, 0.55), 0 26px 50px -18px rgba(0, 0, 0, 0.9);
+  --deep: #2a4fb0;
+  --deep-2: #16296b;
 }
 :root[data-theme='light'] {
   color-scheme: light;
@@ -93,6 +103,8 @@
   --ok-bg: #eefaf1; --warn: #8a5300; --bad: #b3261e;
   --shadow: 0 1px 2px rgba(10, 16, 32, 0.06), 0 10px 30px -14px rgba(10, 16, 32, 0.22);
   --shadow-lift: 0 3px 8px rgba(10, 16, 32, 0.1), 0 26px 50px -18px rgba(10, 16, 32, 0.32);
+  --deep: #122b73;
+  --deep-2: #0a1848;
 }
 
 * { box-sizing: border-box; }
@@ -208,7 +220,7 @@ a { color: inherit; }
 .nav-burger:hover { background: rgba(255,255,255,.10); }
 .mobile-nav {
   display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 65;
-  background: #0a1327; border-bottom: 1px solid rgba(255,255,255,.12);
+  background: var(--deep-2); border-bottom: 1px solid rgba(255,255,255,.12);
   padding: 10px 20px 18px; flex-direction: column; gap: 2px;
   box-shadow: 0 20px 40px -20px rgba(0,0,0,.6);
 }
@@ -255,7 +267,7 @@ h2.sh { font: 700 clamp(26px, 3.4vw, 36px)/1.15 var(--display); letter-spacing: 
    The curve is a second-order settling response: literally Control Systems,
    one of the courses on sale, and the shape of a rank converging on target.
    ========================================================================= */
-.hero { position: relative; background: #070c18; overflow: hidden; isolation: isolate; }
+.hero { position: relative; background: linear-gradient(165deg, var(--deep), var(--deep-2)); overflow: hidden; isolation: isolate; }
 .hero::before {
   content: ''; position: absolute; inset: 0; z-index: 0;
   background:
@@ -302,7 +314,7 @@ h1 .hl { color: var(--accent); }
    RANKERS' INTERVIEW PANEL PROMO
    ========================================================================= */
 .panel-promo {
-  background: #070c18; border-radius: var(--radius); overflow: hidden; position: relative;
+  background: linear-gradient(160deg, var(--deep), var(--deep-2)); border-radius: var(--radius); overflow: hidden; position: relative;
   display: grid; grid-template-columns: minmax(0,1fr) 300px; align-items: center; gap: 30px;
   padding: 44px 44px;
 }
@@ -413,7 +425,7 @@ h1 .hl { color: var(--accent); }
   display: grid; place-items: center; cursor: pointer; font: 500 16px var(--sans);
 }
 .vid-sheet-x:hover { background: var(--chipbg); color: var(--ink); }
-.vid-frame-wrap { aspect-ratio: 16/9; background: #070c18; }
+.vid-frame-wrap { aspect-ratio: 16/9; background: var(--deep-2); }
 .vid-frame-wrap iframe { width: 100%; height: 100%; border: 0; display: block; }
 
 /* Our own visible, clickable playlist strip — not relying on YouTube's
@@ -501,7 +513,7 @@ h1 .hl { color: var(--accent); }
    RESULT + TESTIMONIALS
    ========================================================================= */
 .result {
-  margin-top: 30px; background: #070c18; border-radius: var(--radius); overflow: hidden;
+  margin-top: 30px; background: linear-gradient(160deg, var(--deep), var(--deep-2)); border-radius: var(--radius); overflow: hidden;
   padding: 40px 40px; display: grid; grid-template-columns: auto minmax(0,1fr); gap: 36px; align-items: center;
   position: relative;
 }
