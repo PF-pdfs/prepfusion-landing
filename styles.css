@@ -701,8 +701,13 @@ h1 .hl { color: var(--accent); }
   .nav-burger { display: inline-flex; }
 }
 @media (max-width: 620px) {
-  .mentor { grid-template-columns: minmax(0,1fr); }
-  .mentor-photo { min-height: 180px; max-height: 220px; }
+  /* Same side-by-side portrait layout as desktop, just a smaller thumbnail
+     column — not a full-width stacked crop. Width-only sizing keeps the
+     photo's own aspect ratio; the card shrinks along with it. */
+  .mentor { grid-template-columns: 84px minmax(0,1fr); align-items: start; }
+  .mentor-photo { height: auto; min-height: 0; aspect-ratio: 680 / 816; }
+  .mentor-info { padding: 14px 16px 14px 13px; gap: 10px; }
+  .mentor-id h3 { font-size: 16px; }
   .cmp-below { grid-template-columns: minmax(0,1fr); text-align: left; }
   .cmp-below .btn { width: 100%; }
 }
