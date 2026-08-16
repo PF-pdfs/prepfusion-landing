@@ -33,7 +33,19 @@ interactive. `wrangler deploy` publishes `worker.js` and creates the five routes
 `wrangler.toml`. **This step alone changes nothing visible yet** — a Worker route only fires for
 traffic that's already being proxied through Cloudflare, and the apex isn't proxied until step 2.
 
-## 2. Flip the apex to Proxied — the one step that actually changes anything
+## 2. Set the route to fail open (Free plan only — do this before step 3)
+
+The Workers Free plan caps the account at 100,000 Worker requests/day, shared across every Worker
+on the account (`gate_pdfs`'s PDF-download Worker draws from the same pool). This landing page is
+nowhere near that on its own, but it's worth setting the safe behavior for the day it ever is hit.
+
+Dashboard → Workers & Pages → this Worker → Settings → Routes → for each of the five routes, set
+**"Bypass on quota exceeded" / fail open** rather than the default. With this set, going over quota
+just makes `prepfusion.in/` silently revert to the old Vercel homepage for the rest of that day (UTC
+reset), instead of showing a Cloudflare error page. No outage either way — just which fallback you
+land on.
+
+## 3. Flip the apex to Proxied — the one step that actually changes anything
 
 Cloudflare dashboard → this zone → DNS → the `A` record for `@` (or `prepfusion.in`) → click the
 grey cloud icon so it turns **orange** (Proxied).
@@ -42,7 +54,7 @@ This is the entire change. It's also the entire rollback: click it back to grey 
 instantly goes back to talking to Vercel directly, with the Worker completely out of the path,
 exactly as it behaves today.
 
-## 3. Verify
+## 4. Verify
 
 - `https://prepfusion.in/` — should now show the landing page, with a valid certificate (Cloudflare
   issues its own edge cert automatically once a record is proxied).
