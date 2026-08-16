@@ -156,9 +156,25 @@ a { color: inherit; }
 .proto button:hover { color: #f2f6ff; border-color: #3c4d70; }
 .proto button[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: #0a1020; }
 
-/* ---------- site header ---------- */
-.bar { position: sticky; top: 41px; z-index: 60; background: var(--paper); border-bottom: 1px solid var(--line); }
+/* ---------- site header ----------
+   Fixed, not sticky: the header lives inside .hero, and .hero has
+   overflow:hidden — which silently disables position:sticky for anything
+   inside it (same trap as the comparison table's sticky column below). Fixed
+   escapes that, and is what "constant on every screen" actually needs, since
+   a sticky header would stop at the bottom of .hero regardless.
+   --bar-h is the height it no longer occupies in flow; .hero pads by it. */
+:root { --bar-h: 63px; }
+.bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+  background: var(--paper); border-bottom: 1px solid var(--line);
+  transition: background-color .25s ease, border-color .25s ease;
+}
+.hero { padding-top: var(--bar-h); }
+/* Transparent while it is over the hero artwork; once the page scrolls past
+   the hero, .is-stuck (set in script.js) gives it a solid background so the
+   links stay readable over ordinary page content. */
 .bar.on-hero { background: transparent; border-bottom-color: rgba(255,255,255,0.10); }
+.bar.on-hero.is-stuck { background: var(--deep-2); border-bottom-color: rgba(255,255,255,.12); box-shadow: 0 10px 30px -18px rgba(0,0,0,.8); }
 .bar-in { max-width: 1160px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 18px; }
 .logo { font: 800 21px/1 var(--display); letter-spacing: -0.03em; text-decoration: none; white-space: nowrap; }
 .logo b { font-weight: 800; color: var(--wordmark); }
@@ -232,21 +248,42 @@ a { color: inherit; }
   align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
 }
 .nav-burger:hover { background: rgba(255,255,255,.10); }
+/* A side drawer that slides in from the left, not a panel that drops out of
+   the header: it stays anchored to the edge of the screen instead of to a
+   header that is now fixed, and it can run the full height so a long menu
+   scrolls on its own rather than pushing the page around.
+   Always rendered (not display:none) so the transform can animate — it is
+   moved off-screen and made inert with visibility instead. */
 .mobile-nav {
-  display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 65;
-  background: var(--deep-2); border-bottom: 1px solid rgba(255,255,255,.12);
-  padding: 10px 20px 18px; flex-direction: column; gap: 2px;
-  box-shadow: 0 20px 40px -20px rgba(0,0,0,.6);
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 90;
+  width: min(82vw, 320px); display: flex; flex-direction: column; gap: 2px;
+  background: var(--deep-2); border-right: 1px solid rgba(255,255,255,.12);
+  padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+  box-shadow: 24px 0 50px -24px rgba(0,0,0,.75);
+  overflow-y: auto; overscroll-behavior: contain;
+  transform: translateX(-100%); visibility: hidden;
+  transition: transform .3s cubic-bezier(.22,.61,.36,1), visibility .3s;
 }
-.mobile-nav.on { display: flex; }
+.mobile-nav.on { transform: translateX(0); visibility: visible; }
+/* Tapping anywhere off the drawer closes it — and the dim makes it obvious
+   the page behind is not what you are interacting with. */
+.nav-scrim {
+  position: fixed; inset: 0; z-index: 85;
+  background: rgba(6,10,22,.6); backdrop-filter: blur(2px);
+  opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility .3s;
+}
+.nav-scrim.on { opacity: 1; visibility: visible; }
 .mobile-nav a {
   display: flex; align-items: center; gap: 8px; text-decoration: none;
-  color: rgba(242,246,255,0.85); font: 500 15px var(--sans); padding: 12px 8px;
+  color: rgba(242,246,255,0.85); font: 500 15px var(--sans); padding: 13px 8px;
   border-bottom: 1px solid rgba(255,255,255,.07);
 }
 .mobile-nav a:last-of-type { border-bottom: 0; }
 .mobile-nav a:hover { color: #fff; }
 .mobile-nav .btn { margin-top: 10px; }
+@media (prefers-reduced-motion: reduce) {
+  .mobile-nav, .nav-scrim { transition-duration: .01ms; }
+}
 
 /* ---------- buttons ---------- */
 .btn {
@@ -267,7 +304,11 @@ a { color: inherit; }
 .btn-lg { font-size: 15.5px; padding: 14px 24px; border-radius: 13px; }
 
 /* ---------- shared section furniture ---------- */
-.sec { padding: 84px 0 0; }
+/* padding-top only, never the shorthand: most .sec elements are also .wrap,
+   and a `padding: 84px 0 0` here silently reset .wrap's own 24px side padding
+   to zero. On desktop the 1160px max-width hid it; on a phone every section
+   heading sat flush against the screen edge. */
+.sec { padding-top: 84px; }
 .eyebrow {
   font: 600 11px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase;
   color: var(--ink-faint); display: flex; align-items: center; gap: 10px; margin: 0 0 14px;
@@ -682,7 +723,7 @@ h1 .hl { color: var(--accent); }
    CLOSING CTA + FOOTER
    ========================================================================= */
 .foot { margin-top: 84px; border-top: 1px solid var(--line); background: var(--paper); }
-.foot-in { max-width: 1160px; margin: 0 auto; padding: 44px 24px 40px; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; }
+.foot-in { max-width: 1160px; margin: 0 auto; padding: 44px 24px 40px; display: grid; grid-template-columns: 1.7fr 1fr 1fr 1fr 1.15fr; gap: 32px; }
 .foot h4 { font: 600 10.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 14px; }
 .foot ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
 .foot a { color: var(--ink-soft); text-decoration: none; font-size: 14px; }
@@ -710,11 +751,45 @@ h1 .hl { color: var(--accent); }
   background-size: cover; background-position: center;
 }
 .banner-slide.on { opacity: 1; visibility: visible; }
-/* "full image" banners: the graphic already has its own text/branding, so
-   it's shown whole via object-fit:contain (never cropped) instead of the
-   grid/padding layout above — same rule on mobile and desktop alike. */
+/* "full image" banners with no copy: the graphic carries everything, so it's
+   shown whole via object-fit:contain (never cropped), same on every width. */
 .banner-slide.img-only { display: block; padding: 0; background: var(--deep-2); }
 .banner-slide.img-only img { width: 100%; height: 100%; object-fit: contain; display: block; }
+/* ...and with copy: text left, the graphic framed on the right. The banner box
+   is far wider than a 3:2 poster is, so showing the poster whole on its own
+   strands a lot of empty space — this puts the copy in it. Collapses to
+   image-only under 720px (see the narrow breakpoint below). */
+.banner-slide.img-split {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  /* stretch, not center: the figure needs a definite row height to size the
+     graphic against, and a centered row is content-sized (which made the
+     image overflow its own frame). The copy re-centers itself inside its
+     stretched column via its own align-content. */
+  align-items: stretch; gap: clamp(16px, 3vw, 36px);
+  /* Side padding clears the prev/next arrows (38px wide, inset 14px) so they
+     never sit on top of the graphic or the copy. */
+  padding: clamp(16px, 2.6vw, 28px) clamp(58px, 5vw, 68px);
+  background: var(--deep-2);
+}
+.banner-slide.img-split .bs-copy { display: grid; gap: 11px; align-content: center; justify-items: start; }
+.banner-slide.img-split .bs-figure {
+  display: block; min-height: 0;
+  border-radius: 12px; overflow: hidden; background: rgba(0,0,0,.28);
+  border: 1px solid rgba(255,255,255,.1);
+}
+.banner-slide.img-split .bs-figure img {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+}
+/* Narrow screens have no room for copy beside the graphic — and the graphic
+   already says all of it — so the text column drops out entirely and the
+   image takes the whole slide, exactly like an .img-only banner. Its own
+   breakpoint (not the 620px one below) because two columns get unusably
+   cramped well before a phone width. */
+@media (max-width: 720px) {
+  .banner-slide.img-split { display: block; padding: 0; }
+  .banner-slide.img-split .bs-copy { display: none; }
+  .banner-slide.img-split .bs-figure { border: 0; border-radius: 0; background: none; height: 100%; }
+}
 .banner-slide em {
   font-style: normal; justify-self: start;
   font: 700 10.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase;
@@ -731,18 +806,22 @@ h1 .hl { color: var(--accent); }
   font: 650 13.5px var(--sans); color: #0a1020;
   background: var(--accent); padding: 10px 18px; border-radius: 11px;
 }
+/* Below the track, not floating inside it: overlaid dots sat on top of the
+   artwork, and on a "full image" banner that means covering part of the
+   graphic itself — which is the whole point of that banner style. */
 .banner-nav {
-  position: absolute; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 3;
-  display: flex; gap: 7px; padding: 6px 8px; border-radius: 999px;
-  background: rgba(8,14,30,.5); backdrop-filter: blur(6px);
+  display: flex; justify-content: center; gap: 7px;
+  margin: 10px auto 0; padding: 0;
 }
+/* Themed against the page, not the banner: these now sit on the page
+   background below the track rather than on the dark artwork. */
 .banner-dot {
   width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
-  border: 1px solid rgba(255,255,255,.28); background: transparent;
-  color: rgba(255,255,255,.75); font: 600 11px var(--mono);
+  border: 1px solid var(--line-strong); background: transparent;
+  color: var(--ink-soft); font: 600 11px var(--mono);
   display: grid; place-items: center; transition: background .18s, color .18s, border-color .18s;
 }
-.banner-dot:hover { border-color: rgba(255,255,255,.6); color: #fff; }
+.banner-dot:hover { border-color: var(--ink-soft); color: var(--ink); }
 .banner-dot[aria-current='true'] { background: var(--accent); border-color: var(--accent); color: #0a1020; }
 .banner-arrow {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
@@ -792,6 +871,15 @@ h1 .hl { color: var(--accent); }
 @media (max-width: 860px) {
   #main-nav { display: none; }
   .nav-burger { display: inline-flex; }
+  /* Burger hard left, theme toggle hard right, wordmark centred between them.
+     Source order is logo → burger → toggle, so `order` does the rearranging
+     rather than moving the markup (which desktop still reads in its own
+     order). The two side controls are the same 38px box, so centring the
+     logo with auto margins lands it on the true centre of the bar. */
+  .bar-in { gap: 10px; }
+  .nav-burger { order: -1; }
+  .logo { order: 0; margin: 0 auto; }
+  .bar-cta { order: 1; }
 }
 @media (max-width: 620px) {
   /* Same side-by-side portrait layout as desktop, just a smaller thumbnail
@@ -853,7 +941,7 @@ h1 .hl { color: var(--accent); }
   .cat-arrow { display: flex; }
   .cat-arrow.prev { left: 0; }
   .cat-arrow.next { right: 0; }
-  .sec { padding: 60px 0 0; }
+  .sec { padding-top: 60px; }
   .hero-in { padding: 56px 24px 64px; }
   .syl-row { grid-template-columns: minmax(0,1fr) 62px; }
   .syl-bar { display: none; }
@@ -862,3 +950,58 @@ h1 .hl { color: var(--accent); }
   .auth-art, .auth-form { padding: 40px 28px; }
   .result-air b { font-size: 58px; }
 }
+
+/* =========================================================================
+   WHATSAPP CONTACT
+   Enquiries come in on WhatsApp, not by phone — so the number is presented
+   as a chat link everywhere it appears, and says so, rather than looking
+   like something to dial.
+   ========================================================================= */
+.foot-wa {
+  display: inline-flex; align-items: center; gap: 7px;
+  color: inherit; text-decoration: none;
+  font: 500 12.5px var(--mono);
+}
+.foot-wa svg { color: #25d366; flex: none; }
+.foot-wa:hover span { color: var(--ink); }
+.foot-wa em {
+  font-style: normal; font-size: 11px; letter-spacing: .02em;
+  color: var(--ink-faint); opacity: .85;
+}
+.foot-wa em::before { content: '· '; }
+
+/* Floating chat launcher. Label is collapsed to the icon on small screens so
+   it never crowds the page it floats over. */
+.wa-float {
+  position: fixed; right: 18px; bottom: 18px; z-index: 120;
+  display: inline-flex; align-items: center; gap: 11px;
+  padding: 12px 18px 12px 14px; border-radius: 999px;
+  background: #25d366; color: #05300f; text-decoration: none;
+  box-shadow: 0 10px 30px -10px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.25);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.wa-float:hover { transform: translateY(-2px); box-shadow: 0 16px 38px -12px rgba(0,0,0,.6), 0 2px 6px rgba(0,0,0,.3); }
+.wa-float:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.wa-float-label {
+  display: flex; flex-direction: column; line-height: 1.25;
+  font: 700 13.5px var(--sans);
+}
+.wa-float-label em {
+  font: 500 11px var(--sans); font-style: normal; opacity: .78;
+}
+@media (max-width: 620px) {
+  .wa-float { right: 14px; bottom: 14px; padding: 13px; gap: 0; }
+  .wa-float-label { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wa-float { transition-duration: .01ms; }
+}
+
+/* App download column in the footer. Text links rather than the store badge
+   images used on prepfusion.in: the badges are external raster assets with
+   their own brand rules, and five of them stacked would outweigh every other
+   footer column. */
+.foot-apps p {
+  margin: 0 0 10px; font-size: 12.5px; line-height: 1.5; color: var(--ink-faint);
+}
+.foot-apps ul a { display: inline-flex; align-items: center; gap: 7px; }

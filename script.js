@@ -210,25 +210,51 @@
     });
   }
 
+  /* ---------------- mobile drawer ----------------
+     Slides in from the left over a scrim. The scrim is created here rather
+     than sitting in the markup because it exists only to serve this drawer,
+     and having one owner for both halves keeps them from drifting apart. */
   var burgerBtn = document.getElementById('burger-btn');
   var mobileNav = document.getElementById('mobile-nav');
+  var navScrim = null;
+  function setDrawer(open) {
+    if (!mobileNav) return;
+    mobileNav.classList.toggle('on', open);
+    if (navScrim) navScrim.classList.toggle('on', open);
+    if (burgerBtn) burgerBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    /* stop the page behind scrolling under the drawer */
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
   if (burgerBtn && mobileNav) {
+    navScrim = document.createElement('div');
+    navScrim.className = 'nav-scrim';
+    navScrim.setAttribute('aria-hidden', 'true');
+    mobileNav.parentNode.insertBefore(navScrim, mobileNav);
+    navScrim.addEventListener('click', function () { setDrawer(false); });
+
     burgerBtn.addEventListener('click', function () {
-      var open = mobileNav.classList.toggle('on');
-      burgerBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      setDrawer(!mobileNav.classList.contains('on'));
     });
     mobileNav.querySelectorAll('a').forEach(function (a) {
-      a.addEventListener('click', function () {
-        mobileNav.classList.remove('on');
-        burgerBtn.setAttribute('aria-expanded', 'false');
-      });
+      a.addEventListener('click', function () { setDrawer(false); });
     });
   }
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
     if (morePanel) { morePanel.classList.remove('on'); moreBtn.setAttribute('aria-expanded', 'false'); }
-    if (mobileNav) { mobileNav.classList.remove('on'); burgerBtn.setAttribute('aria-expanded', 'false'); }
+    setDrawer(false);
   });
+
+  /* The fixed header is transparent over the hero artwork; past the hero it
+     needs a solid background or the links sit on top of page content. */
+  var siteBar = document.getElementById('site-bar');
+  if (siteBar) {
+    var onScroll = function () {
+      siteBar.classList.toggle('is-stuck', window.scrollY > 12);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
 
   /* ---------------- rankers' interview panel overlay ----------------
      Same "stay on our site" pattern as the header YouTube overlay (Feature 1):
@@ -490,11 +516,24 @@
        touch faster than before — tuned by feel, not by a hard breakpoint
        tied to the layout, so it stays right if the layout changes later */
     var qSpeed = window.matchMedia('(max-width: 620px)').matches ? 0.55 : 0.32;
+    /* The position is tracked in a float of our own rather than by doing
+       `scrollLeft += qSpeed`. Reading scrollLeft back snaps it to a whole
+       device pixel, so a per-frame increment smaller than one device pixel is
+       rounded away and re-read as the same value every frame — the carousel
+       then never moves at all. That is exactly what happened on desktop
+       (0.32px/frame, below the ~0.8px quantum at 1.25x scaling) while mobile's
+       larger step happened to clear it. Accumulating separately and only
+       *writing* scrollLeft keeps the sub-pixel remainder between frames. */
+    var qPos = qEl.scrollLeft;
     (function autoScroll() {
-      if (!qPaused) {
-        var half = qEl.scrollWidth / 2;
-        qEl.scrollLeft += qSpeed;
-        if (qEl.scrollLeft >= half) qEl.scrollLeft -= half;
+      var half = qEl.scrollWidth / 2;
+      if (qPaused) {
+        /* the reader is scrolling it themselves — follow, don't fight */
+        qPos = qEl.scrollLeft;
+      } else if (half > 0) {
+        qPos += qSpeed;
+        if (qPos >= half) qPos -= half;
+        qEl.scrollLeft = qPos;
       }
       requestAnimationFrame(autoScroll);
     })();
@@ -547,21 +586,44 @@
 
     list.forEach(function (b, i) {
       var a = document.createElement('a');
-      /* "image" type banners are a complete, pre-designed graphic (already
-         has its own text/branding baked in) — shown as-is, full-bleed, with
-         no site text overlaid on top. Same treatment on mobile and desktop:
-         one image, object-fit:contain, so nothing gets cropped either way. */
-      var isImageOnly = b.type === 'image' && b.image;
-      a.className = 'banner-slide' + (isImageOnly ? ' img-only' : '') + (i === 0 ? ' on' : '');
+      /* "image" type banners are a complete, pre-designed graphic that already
+         has its own text/branding baked in, so the site never overlays text on
+         top of it. Two layouts, because desktop and mobile have opposite
+         problems:
+           - Desktop: the banner box is very wide and short, so a 3:2 graphic
+             shown whole leaves large empty margins either side. If the banner
+             also has copy, it's laid out beside the image (text left, image
+             framed right) so that space carries something.
+           - Mobile: there is no room for both, so only the image shows —
+             .img-split's text column is hidden in the narrow breakpoint. */
+      var isImage = b.type === 'image' && b.image;
+      var hasCopy = Boolean(b.title || b.tag || b.text || b.cta);
+      var imageLayout = isImage ? (hasCopy ? ' img-split' : ' img-only') : '';
+      a.className = 'banner-slide' + imageLayout + (i === 0 ? ' on' : '');
       a.href = b.link || '#0';
       a.setAttribute('aria-hidden', i === 0 ? 'false' : 'true');
 
-      if (isImageOnly) {
+      if (isImage) {
         var img = document.createElement('img');
         img.src = b.image;
         img.alt = b.title || 'Banner';
         img.loading = i === 0 ? 'eager' : 'lazy';
-        a.appendChild(img);
+        if (hasCopy) {
+          var copy = document.createElement('div');
+          copy.className = 'bs-copy';
+          copy.innerHTML =
+            (b.tag ? '<em>' + b.tag + '</em>' : '') +
+            (b.title ? '<b>' + b.title + '</b>' : '') +
+            (b.text ? '<span>' + b.text + '</span>' : '') +
+            (b.cta ? '<i>' + b.cta + ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i>' : '');
+          var figure = document.createElement('div');
+          figure.className = 'bs-figure';
+          figure.appendChild(img);
+          a.appendChild(copy);
+          a.appendChild(figure);
+        } else {
+          a.appendChild(img);
+        }
       } else {
         if (b.image) {
           /* a consistent dark wash regardless of the uploaded photo, so the
