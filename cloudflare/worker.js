@@ -74,6 +74,17 @@ export default {
     const headers = new Headers(upstream.headers);
     headers.set('Content-Type', contentTypeFor(filePath));
     headers.delete('x-content-type-options');
+    // GitHub sends `content-security-policy: default-src 'none'; sandbox` on
+    // raw.githubusercontent.com responses specifically so raw content can
+    // never function as a live page — sandbox alone disables script
+    // execution outright, and default-src 'none' blocks the Google Fonts
+    // stylesheet, the banners.json fetch, everything. Confirmed live: the
+    // HTML arrived byte-correct and still didn't render, because of this.
+    // frame-options/xss-protection are GitHub's raw-content headers too and
+    // equally meaningless once this is actually being served as a page.
+    headers.delete('content-security-policy');
+    headers.delete('x-frame-options');
+    headers.delete('x-xss-protection');
     return new Response(upstream.body, { status: upstream.status, headers });
   }
 };
