@@ -26,7 +26,14 @@
   rel="stylesheet"
   href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
 />
-<link rel="stylesheet" href="styles.css" />
+<!-- ?v= busts the 12h Cache-Control this host sends for these two files —
+     without it, a phone that loaded the page before a deploy can keep
+     serving the old script/styles for up to 12h even on a plain reload
+     (this bit a real report: a fix landed, tested correct on the server,
+     and still "didn't work" on the reporter's phone until they cleared
+     cache — see git history around 2026-08-16). No build step here, so
+     bump this by hand whenever script.js or styles.css changes. -->
+<link rel="stylesheet" href="styles.css?v=20260816a" />
 </head>
 <body>
 <!-- ============================== LANDING ============================== -->
@@ -540,6 +547,6 @@
     </div>
   </div>
 </div>
-<script src="script.js" defer></script>
+<script src="script.js?v=20260816a" defer></script>
 </body>
 </html>
