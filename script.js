@@ -595,8 +595,53 @@
     /* pause while the pointer is over the banner so a slide can be read/clicked */
     bTrack.addEventListener('mouseenter', function () { clearInterval(bTimer); });
     bTrack.addEventListener('mouseleave', restart);
+
+    /* touch swipe — slides are crossfaded via .on, not a real scroll
+       container, so swiping has to be read from raw touch deltas. A tap
+       (no real horizontal movement) is left alone so the slide's own link
+       still opens normally. */
+    var touchStartX = 0, touchStartY = 0, touchDeltaX = 0, didSwipe = false;
+    bTrack.addEventListener('touchstart', function (e) {
+      var t = e.touches[0];
+      touchStartX = t.clientX; touchStartY = t.clientY; touchDeltaX = 0;
+      clearInterval(bTimer);
+    }, { passive: true });
+    bTrack.addEventListener('touchmove', function (e) {
+      var t = e.touches[0];
+      touchDeltaX = t.clientX - touchStartX;
+    }, { passive: true });
+    bTrack.addEventListener('touchend', function (e) {
+      var t = e.changedTouches[0];
+      var deltaY = t.clientY - touchStartY;
+      if (Math.abs(touchDeltaX) > 40 && Math.abs(touchDeltaX) > Math.abs(deltaY)) {
+        didSwipe = true;
+        show(bIndex + (touchDeltaX < 0 ? 1 : -1));
+      }
+      restart();
+    });
+    bTrack.addEventListener('click', function (e) {
+      if (didSwipe) { e.preventDefault(); didSwipe = false; }
+    }, true);
+
     restart();
   }
+
+  /* ---------------- category strip arrows (mobile carousel mode) ----------------
+     On wide screens .cat-grid is a plain CSS grid and these buttons stay
+     hidden; below 620px it becomes a real horizontal-scroll flex strip
+     (native swipe already works there), and the arrows just nudge it by
+     one card. */
+  var catGrid = document.querySelector('.cat-grid');
+  var catPrev = document.getElementById('cat-prev');
+  var catNext = document.getElementById('cat-next');
+  function scrollCats(dir) {
+    if (!catGrid) return;
+    var card = catGrid.querySelector('.cat-card');
+    var step = card ? card.getBoundingClientRect().width + 14 : 260;
+    catGrid.scrollBy({ left: dir * step, behavior: 'smooth' });
+  }
+  if (catPrev) catPrev.addEventListener('click', function () { scrollCats(-1); });
+  if (catNext) catNext.addEventListener('click', function () { scrollCats(1); });
 
   fetch('banners.json', { cache: 'no-cache' })
     .then(function (r) { if (!r.ok) throw new Error('no banners.json'); return r.json(); })

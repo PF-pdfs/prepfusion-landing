@@ -379,21 +379,34 @@ h1 .hl { color: var(--accent); }
 }
 
 /* =========================================================================
-   CATEGORY GRID — Phase 1: every card redirects to the existing site
+   CATEGORY GRID — Phase 1: every card redirects to the existing site.
+   .cat-wrap adds prev/next arrows, only shown once the grid switches to a
+   horizontal-scroll strip on mobile (see the max-width:720px block below) —
+   a stacked one-per-row list read poorly on narrow screens.
    ========================================================================= */
-.cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; margin-top: 30px; }
+.cat-wrap { position: relative; margin-top: 30px; }
+.cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
 .cat-card {
-  position: relative; display: grid; gap: 6px; text-align: left; text-decoration: none;
-  background: var(--card); border: 1.5px solid var(--line); border-radius: 15px;
-  padding: 20px 20px 18px; color: inherit;
+  position: relative; display: grid; gap: 8px; text-align: left; text-decoration: none;
+  background: var(--card); border: 1.5px solid var(--line); border-radius: 16px;
+  padding: 28px 26px 26px; min-height: 148px; align-content: start; color: inherit;
   transition: transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s, border-color .2s;
 }
 .cat-card:hover { transform: translateY(-3px); border-color: var(--line-strong); box-shadow: var(--shadow-lift); }
-.cat-card b { font: 650 16px/1.3 var(--display); letter-spacing: -.02em; }
-.cat-card span { font-size: 13px; color: var(--ink-soft); }
+.cat-card b { font: 650 19px/1.3 var(--display); letter-spacing: -.02em; }
+.cat-card span { font-size: 14.5px; color: var(--ink-soft); }
 .cat-card::after {
-  content: '↗'; position: absolute; top: 18px; right: 18px; color: var(--ink-faint); font-size: 13px;
+  content: '↗'; position: absolute; top: 22px; right: 22px; color: var(--ink-faint); font-size: 14px;
 }
+.cat-arrow {
+  display: none; position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
+  width: 38px; height: 38px; border-radius: 50%; cursor: pointer;
+  border: 1.5px solid var(--line-strong); background: var(--card); color: var(--ink);
+  align-items: center; justify-content: center; box-shadow: var(--shadow-lift);
+}
+.cat-arrow:hover { background: var(--chipbg); }
+.cat-arrow.prev { left: 6px; }
+.cat-arrow.next { right: 6px; }
 .cat-tag {
   justify-self: start; font: 700 10px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase;
   padding: 5px 9px; border-radius: 6px; margin-bottom: 2px;
@@ -785,6 +798,9 @@ h1 .hl { color: var(--accent); }
   .panel-promo { grid-template-columns: minmax(0,1fr); }
   .panel-promo-art { order: -1; max-width: 260px; }
   .hero-grid { grid-template-columns: minmax(0,1fr); gap: 40px; }
+  /* the step-response curve behind the hero text reads as noise once the
+     text column takes up the full width instead of sharing it with .proof */
+  #trace { opacity: .3; }
   .trans, .mentors, .auth { grid-template-columns: minmax(0,1fr); }
   .trans-side + .trans-side { border-left: 0; border-top: 1.5px solid var(--line); }
   .det { grid-template-columns: minmax(0,1fr); }
@@ -797,9 +813,21 @@ h1 .hl { color: var(--accent); }
 @media (max-width: 620px) {
   .banners { padding: 14px 16px 0; }
   .banner-track { aspect-ratio: 4 / 3; }
-  .banner-arrow { display: none; }
+  .banner-arrow { width: 32px; height: 32px; }
+  .banner-arrow.prev { left: 8px; }
+  .banner-arrow.next { right: 8px; }
   .banner-dot { width: 22px; height: 22px; font-size: 10px; }
   .quotes-nav { display: none; }
+  /* one-per-row grid read as a long plain list on narrow screens — switch
+     to a snapping horizontal strip, same interaction language as the
+     banner carousel above */
+  .cat-grid {
+    display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory;
+    padding: 4px 4px 6px; margin: 0 -4px; scrollbar-width: none;
+  }
+  .cat-grid::-webkit-scrollbar { display: none; }
+  .cat-card { flex: 0 0 80%; scroll-snap-align: start; }
+  .cat-arrow { display: flex; }
   .sec { padding: 60px 0 0; }
   .hero-in { padding: 56px 24px 64px; }
   .syl-row { grid-template-columns: minmax(0,1fr) 62px; }
