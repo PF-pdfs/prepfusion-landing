@@ -1,7 +1,6 @@
 {
   "banners": [
     {
-      "type": "image",
       "tag": "Admissions open",
       "title": "GATE 2027 ECE — TITANS Batch",
       "text": "1000+ hours of lectures, biweekly 1:1 mentorship, PYQs with solutions and a 1700+ question premium test series.",
@@ -10,7 +9,6 @@
       "image": "assets/img/banners/1786880777956-gate2027-ece-titans.png"
     },
     {
-      "type": "image",
       "tag": "Admissions open",
       "title": "GATE 2027 EE — TITANS Batch",
       "text": "1000+ hours of lectures, biweekly 1:1 mentorship, PYQs with solutions and a 1700+ question premium test series.",
@@ -19,7 +17,14 @@
       "image": "assets/img/banners/1786880781372-gate2027-ee-titans.png"
     },
     {
-      "type": "image",
+      "tag": "Placements",
+      "title": "Campus to Core VLSI",
+      "text": "Analog + Digital for written tests and interviews — 3000+ problems, 30+ tests and class notes.",
+      "cta": "See placement course",
+      "link": "https://prepfusion.in/new-courses/32-campus-to-core-vlsi-a-complete-course-for-written-test-interviews",
+      "image": "assets/img/banners/1786880792204-campus-to-core-vlsi.jpg"
+    },
+    {
       "tag": "New batch",
       "title": "GATE 2027 ECE — Pathfinders Batch",
       "text": "1000+ hours of recorded lectures, printable notes, and every PYQ with its full solution.",
@@ -28,22 +33,12 @@
       "image": "assets/img/banners/1786880788305-gate2027-ece-pathfinders.png"
     },
     {
-      "type": "image",
       "tag": "New batch",
       "title": "GATE 2027 EE — Pathfinders Batch",
       "text": "1000+ hours of recorded lectures, printable notes, and every PYQ with its full solution.",
       "cta": "Explore the batch",
       "link": "https://prepfusion.in/new-courses/62-gate-2027-full-course-ee-the-pathfinders",
       "image": "assets/img/banners/1786880784804-gate2027-ee-pathfinders.png"
-    },
-    {
-      "type": "image",
-      "tag": "Placements",
-      "title": "Campus to Core VLSI",
-      "text": "Analog + Digital for written tests and interviews — 3000+ problems, 30+ tests and class notes.",
-      "cta": "See placement course",
-      "link": "https://prepfusion.in/new-courses/32-campus-to-core-vlsi-a-complete-course-for-written-test-interviews",
-      "image": "assets/img/banners/1786880792204-campus-to-core-vlsi.jpg"
     }
   ]
 }
