@@ -17,13 +17,22 @@
 
 const LANDING_ORIGIN = 'https://go.prepfusion.in';
 
+// go.prepfusion.in is ITSELF Cloudflare-proxied, in this same zone. A plain
+// fetch() to it from a Worker also on this zone re-enters Cloudflare's own
+// proxy layer for a second hostname in the same account — Cloudflare's
+// loop-detection can block or mangle that (surfaces as a broken/partial
+// load, sometimes an explicit 1042). resolveOverride sidesteps it: it makes
+// this subrequest connect straight to GitHub's serving infrastructure,
+// never touching Cloudflare's proxy for go.prepfusion.in at all, while the
+// URL/Host stays go.prepfusion.in so GitHub Pages' own Host-based custom
+// domain routing still serves the right repo.
+const RESOLVE_VIA = 'pf-pdfs.github.io';
+
 export default {
   async fetch(request) {
     const url = new URL(request.url);
     const target = new URL(url.pathname + url.search, LANDING_ORIGIN);
-    // Same method/headers/body, refetched against the landing page's own
-    // working GitHub Pages custom domain (already has a valid cert, already
-    // live) instead of whatever hostname the browser actually asked for.
-    return fetch(new Request(target.toString(), request));
+    const originRequest = new Request(target.toString(), request);
+    return fetch(originRequest, { cf: { resolveOverride: RESOLVE_VIA } });
   }
 };
