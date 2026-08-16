@@ -32,3 +32,14 @@ routes = [
   { pattern = "prepfusion.in/banners.json", zone_name = "prepfusion.in" },
   { pattern = "prepfusion.in/assets/*", zone_name = "prepfusion.in" }
 ]
+
+# A plain fetch() to prepfusion-landing's own public URL hit error 1042 —
+# Cloudflare blocks same-ACCOUNT Worker-to-Worker fetches over the public
+# network (not just same-zone, as first assumed; reproduced between two
+# workers.dev projects, which aren't even in the same DNS zone). A service
+# binding is Cloudflare's own documented answer: it calls the other Worker
+# internally, same server, same thread, never touches the public network or
+# its loop-detection at all.
+[[services]]
+binding = "LANDING_SITE"
+service = "prepfusion-landing"
