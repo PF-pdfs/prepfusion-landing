@@ -486,10 +486,14 @@
     /* wheel/trackpad or a manual drag also count as "the user is reading" */
     qEl.addEventListener('wheel', function () { pauseAuto(3200); }, { passive: true });
 
+    /* desktop read slower (more text per card at that width), mobile a
+       touch faster than before — tuned by feel, not by a hard breakpoint
+       tied to the layout, so it stays right if the layout changes later */
+    var qSpeed = window.matchMedia('(max-width: 620px)').matches ? 0.55 : 0.32;
     (function autoScroll() {
       if (!qPaused) {
         var half = qEl.scrollWidth / 2;
-        qEl.scrollLeft += 0.45;
+        qEl.scrollLeft += qSpeed;
         if (qEl.scrollLeft >= half) qEl.scrollLeft -= half;
       }
       requestAnimationFrame(autoScroll);

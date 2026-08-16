@@ -818,16 +818,28 @@ h1 .hl { color: var(--accent); }
   .banner-arrow.next { right: 8px; }
   .banner-dot { width: 22px; height: 22px; font-size: 10px; }
   .quotes-nav { display: none; }
+  /* the sticky row-label column used white-space:nowrap, so a long label
+     like "1:1 Mentorship (bi-weekly live session)" forced itself to ~280px
+     wide — on a ~330px-wide details panel that left almost nothing for the
+     actual TITANS/Pathfinders values. Let it wrap and cap its width. */
+  .cmp { min-width: 460px; }
+  .cmp th, .cmp td { padding: 10px 12px; font-size: 12.5px; }
+  .cmp thead th { font-size: 10px; padding: 12px 10px; }
+  .cmp tbody th { white-space: normal; max-width: 130px; line-height: 1.3; }
   /* one-per-row grid read as a long plain list on narrow screens — switch
      to a snapping horizontal strip, same interaction language as the
-     banner carousel above */
+     banner carousel above. The grid gets extra side padding (instead of
+     the arrows just floating on top of the edge cards) so the arrows sit
+     in that gutter and never overlap a card's own text/tag/icon. */
   .cat-grid {
     display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory;
-    padding: 4px 4px 6px; margin: 0 -4px; scrollbar-width: none;
+    padding: 4px 42px 6px; scroll-padding: 0 42px; scrollbar-width: none;
   }
   .cat-grid::-webkit-scrollbar { display: none; }
-  .cat-card { flex: 0 0 80%; scroll-snap-align: start; }
+  .cat-card { flex: 0 0 78%; scroll-snap-align: start; }
   .cat-arrow { display: flex; }
+  .cat-arrow.prev { left: 0; }
+  .cat-arrow.next { right: 0; }
   .sec { padding: 60px 0 0; }
   .hero-in { padding: 56px 24px 64px; }
   .syl-row { grid-template-columns: minmax(0,1fr) 62px; }
