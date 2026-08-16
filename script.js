@@ -654,6 +654,13 @@
     bTrack.addEventListener('touchstart', function (e) {
       var t = e.touches[0];
       touchStartX = t.clientX; touchStartY = t.clientY; touchDeltaX = 0;
+      /* A real swipe usually never fires a click at all (the browser drops it
+         once movement passes its own threshold), so the click handler below
+         never gets a chance to clear didSwipe. Left set, it would wrongly eat
+         the *next*, separate tap — the "have to click twice after swiping"
+         bug. Each new gesture starts clean instead of trusting the previous
+         one's click to have cleaned up after itself. */
+      didSwipe = false;
       clearInterval(bTimer);
     }, { passive: true });
     bTrack.addEventListener('touchmove', function (e) {
