@@ -568,15 +568,6 @@
       link: 'https://prepfusion.in/new-courses?examId=7'
     }
   ];
-  /* Rotated through the fallback slides only, purely so three text-only
-     placeholders don't all look identical — a real uploaded banner image
-     always wins over this. */
-  var FALLBACK_ART = [
-    'linear-gradient(115deg, #14307f 0%, #0a1848 55%, #070c18 100%)',
-    'linear-gradient(115deg, #0c7d40 0%, #0a3f2a 55%, #061018 100%)',
-    'linear-gradient(115deg, #6b2ea8 0%, #2c1250 55%, #0b0718 100%)'
-  ];
-
   function renderBanners(list) {
     var bTrack = document.getElementById('banner-track');
     var bNav = document.getElementById('banner-nav');
@@ -585,61 +576,39 @@
     var bTimer = null;
 
     list.forEach(function (b, i) {
+      /* One banner shape, not two styles. Every slide is a solid-colour panel
+         carrying the copy on the left and the uploaded graphic on the right.
+         Below the narrow breakpoint the copy is hidden by CSS and the graphic
+         fills the slide on its own — a phone has room for one or the other,
+         and the graphic already carries its own branding.
+         The two degenerate cases still render sensibly: no graphic keeps the
+         copy full-width (.no-img), no copy leaves the graphic alone. */
       var a = document.createElement('a');
-      /* "image" type banners are a complete, pre-designed graphic that already
-         has its own text/branding baked in, so the site never overlays text on
-         top of it. Two layouts, because desktop and mobile have opposite
-         problems:
-           - Desktop: the banner box is very wide and short, so a 3:2 graphic
-             shown whole leaves large empty margins either side. If the banner
-             also has copy, it's laid out beside the image (text left, image
-             framed right) so that space carries something.
-           - Mobile: there is no room for both, so only the image shows —
-             .img-split's text column is hidden in the narrow breakpoint. */
-      var isImage = b.type === 'image' && b.image;
+      var hasImage = Boolean(b.image);
       var hasCopy = Boolean(b.title || b.tag || b.text || b.cta);
-      var imageLayout = isImage ? (hasCopy ? ' img-split' : ' img-only') : '';
-      a.className = 'banner-slide' + imageLayout + (i === 0 ? ' on' : '');
+      a.className = 'banner-slide' + (hasImage ? '' : ' no-img') + (hasCopy ? '' : ' no-copy') + (i === 0 ? ' on' : '');
       a.href = b.link || '#0';
       a.setAttribute('aria-hidden', i === 0 ? 'false' : 'true');
 
-      if (isImage) {
+      if (hasCopy) {
+        var copy = document.createElement('div');
+        copy.className = 'bs-copy';
+        copy.innerHTML =
+          (b.tag ? '<em>' + b.tag + '</em>' : '') +
+          (b.title ? '<b>' + b.title + '</b>' : '') +
+          (b.text ? '<span>' + b.text + '</span>' : '') +
+          (b.cta ? '<i>' + b.cta + ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i>' : '');
+        a.appendChild(copy);
+      }
+      if (hasImage) {
         var img = document.createElement('img');
         img.src = b.image;
         img.alt = b.title || 'Banner';
         img.loading = i === 0 ? 'eager' : 'lazy';
-        if (hasCopy) {
-          var copy = document.createElement('div');
-          copy.className = 'bs-copy';
-          copy.innerHTML =
-            (b.tag ? '<em>' + b.tag + '</em>' : '') +
-            (b.title ? '<b>' + b.title + '</b>' : '') +
-            (b.text ? '<span>' + b.text + '</span>' : '') +
-            (b.cta ? '<i>' + b.cta + ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i>' : '');
-          var figure = document.createElement('div');
-          figure.className = 'bs-figure';
-          figure.appendChild(img);
-          a.appendChild(copy);
-          a.appendChild(figure);
-        } else {
-          a.appendChild(img);
-        }
-      } else {
-        if (b.image) {
-          /* a consistent dark wash regardless of the uploaded photo, so the
-             white title/CTA text stays readable no matter what gets uploaded */
-          /* JSON.stringify (kept WITH its own quotes, not sliced off) doubles as a
-             correctly-escaped CSS url("...") string — handles spaces/quotes/etc.
-             in an uploaded filename without hand-rolling CSS escaping. */
-          a.style.backgroundImage = 'linear-gradient(100deg, rgba(6,10,22,.82) 0%, rgba(6,10,22,.35) 55%, rgba(6,10,22,.15) 100%), url(' + JSON.stringify(b.image) + ')';
-        } else {
-          a.style.background = FALLBACK_ART[i % FALLBACK_ART.length];
-        }
-        a.innerHTML =
-          (b.tag ? '<em>' + b.tag + '</em>' : '') +
-          '<b>' + b.title + '</b>' +
-          (b.text ? '<span>' + b.text + '</span>' : '') +
-          (b.cta ? '<i>' + b.cta + ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i>' : '');
+        var figure = document.createElement('div');
+        figure.className = 'bs-figure';
+        figure.appendChild(img);
+        a.appendChild(figure);
       }
       bTrack.appendChild(a);
 
