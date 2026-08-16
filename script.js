@@ -402,7 +402,6 @@
     { n: 'Banu Prasad M', r: 'Semiconductor internship', i: 'BP', t: 'The content on the channel has been immensely helpful in my journey towards securing an internship at a top semiconductor company. The detailed explanations, practical examples and insightful advice deepened my understanding of key concepts and boosted my confidence during tests and interviews.' },
     { n: 'JAYASAKTHI J R', r: 'GATE aspirant', i: 'JR', t: 'I have explored many channels for the GATE exam for about 3 years, but none provided this much quality content, clear explanation and perfect notes like PrepFusion does. Thank you so much — I am way too much grateful to you guys.' },
     { n: 'prabhath', r: 'Test series student', i: 'P', t: 'Just took the Network Theory full-length test — it was really awesome, I can’t describe it in words. The content you and Himanshu deliver, and the test series, are made really well. An exact replica of predicted GATE questions.' },
-    { n: 'Shankha Bhattacharya', r: 'GATE aspirant', i: 'SB', t: 'A very student-friendly approach is adopted by Himanshu Sir and Anish Sir. The PYQ series initiative was very helpful for the GATE exam. I learned lots of different approaches watching their videos on Networks, Analog, Digital, Control, EMFT and Maths.' },
     { n: 'Karthick', r: 'Internship prep', i: 'K', t: 'I am deeply grateful for the guidance and high-quality content provided at no cost — it played a pivotal role in my success at internship preparation. Thank you Himanshu Sir for making such a big difference.' },
     { n: 'A. Parameswara Reddy', r: 'Verilog series', i: 'AR', t: 'I had been searching for a proper Verilog series for quite some time, but nowhere did I find the clarity and depth that your lectures provide. The way you break down concepts makes such a huge difference, and I can see how valuable this knowledge will be for my learning and future work.' },
     { n: 'maneesh', r: 'GATE aspirant', i: 'M', t: 'I am really happy listening to PrepFusion classes. This platform is meant for excellent content for GATE aspirants.' },
@@ -413,63 +412,128 @@
   var star = '<svg width="12" height="12" viewBox="0 0 24 24" fill="var(--accent)" aria-hidden="true"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1Z"/></svg>';
   var qEl = document.getElementById('quotes');
   if (qEl) {
-    function quoteCard(q) {
+    /* One card per quote, full text, no clones and no auto-scroll — the old
+       carousel duplicated the list for a seamless loop and clamped each quote
+       to 5 lines, which is exactly why the testimonials couldn't be read. */
+    QUOTES.forEach(function (q) {
       var b = document.createElement('blockquote');
       b.className = 'quote';
       b.innerHTML =
         '<span class="stars" aria-label="5 out of 5">' + star + star + star + star + star + '</span>' +
         '<p>' + q.t + '</p>' +
         '<footer><span class="q-av">' + q.i + '</span><span>' + q.n + '<em>' + q.r + '</em></span></footer>';
-      return b;
+      qEl.appendChild(b);
+    });
+  }
+
+  /* ---------------- banner carousel ----------------
+     Content comes from banners.json — written by the Decap CMS at /admin,
+     which commits straight to that file in the repo. This inline array is
+     ONLY the fallback for when the file is missing/empty/unreachable, so
+     the carousel never renders blank. Same field shape either way, so the
+     CMS's output needs no adapting on this end. */
+  var FALLBACK_BANNERS = [
+    {
+      tag: 'Admissions open',
+      title: 'GATE 2027 TITANS Batch',
+      text: 'Full syllabus, live guidance, 1:1 mentorship and the complete test series.',
+      cta: 'Explore the batch',
+      link: 'https://prepfusion.in/new-courses?examId=6'
+    },
+    {
+      tag: 'Free to start',
+      title: 'Complete subjects, free to watch',
+      text: 'Watch a full subject end to end before you spend anything. No card needed.',
+      cta: 'Browse free courses',
+      link: 'https://prepfusion.in/zero-price-courses'
+    },
+    {
+      tag: 'Placements',
+      title: 'Campus to Core VLSI',
+      text: 'Analog and Digital interview prep, screening tests and a dedicated placement series.',
+      cta: 'See placement courses',
+      link: 'https://prepfusion.in/new-courses?examId=7'
     }
-    /* Rendered twice back to back: auto-scroll runs across set 1, and the
-       instant it crosses into set 2 the scroll position is snapped back by
-       exactly one set's width — since the two sets are identical, that jump
-       is invisible, giving an infinite loop with no easing/reset stutter. */
-    QUOTES.forEach(function (q) { qEl.appendChild(quoteCard(q)); });
-    QUOTES.forEach(function (q) { qEl.appendChild(quoteCard(q)); });
-  }
+  ];
+  /* Rotated through the fallback slides only, purely so three text-only
+     placeholders don't all look identical — a real uploaded banner image
+     always wins over this. */
+  var FALLBACK_ART = [
+    'linear-gradient(115deg, #14307f 0%, #0a1848 55%, #070c18 100%)',
+    'linear-gradient(115deg, #0c7d40 0%, #0a3f2a 55%, #061018 100%)',
+    'linear-gradient(115deg, #6b2ea8 0%, #2c1250 55%, #0b0718 100%)'
+  ];
 
-  var qPrev = document.getElementById('q-prev');
-  var qNext = document.getElementById('q-next');
-  var qWrap = document.querySelector('.quotes-wrap');
-  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var qPaused = false;
-  var qResumeTimer = null;
+  function renderBanners(list) {
+    var bTrack = document.getElementById('banner-track');
+    var bNav = document.getElementById('banner-nav');
+    if (!bTrack || !list || !list.length) return;
+    var bIndex = 0;
+    var bTimer = null;
 
-  function pauseAuto(ms) {
-    qPaused = true;
-    clearTimeout(qResumeTimer);
-    qResumeTimer = setTimeout(function () { qPaused = false; }, ms || 2600);
-  }
-
-  function scrollQuotes(dir) {
-    if (!qEl) return;
-    pauseAuto(3200);
-    var card = qEl.querySelector('.quote');
-    var step = card ? card.getBoundingClientRect().width + 14 : 300;
-    qEl.scrollBy({ left: dir * step * 2, behavior: 'smooth' });
-  }
-  if (qPrev) qPrev.addEventListener('click', function () { scrollQuotes(-1); });
-  if (qNext) qNext.addEventListener('click', function () { scrollQuotes(1); });
-
-  if (qEl && qWrap && !reduceMotion) {
-    qWrap.addEventListener('mouseenter', function () { qPaused = true; clearTimeout(qResumeTimer); });
-    qWrap.addEventListener('mouseleave', function () { qPaused = false; });
-    qWrap.addEventListener('touchstart', function () { pauseAuto(4000); }, { passive: true });
-    qWrap.addEventListener('focusin', function () { qPaused = true; clearTimeout(qResumeTimer); });
-    qWrap.addEventListener('focusout', function () { qPaused = false; });
-    /* wheel/trackpad or a manual drag also count as "the user is reading" */
-    qEl.addEventListener('wheel', function () { pauseAuto(3200); }, { passive: true });
-
-    (function autoScroll() {
-      if (!qPaused) {
-        var half = qEl.scrollWidth / 2;
-        qEl.scrollLeft += 0.45;
-        if (qEl.scrollLeft >= half) qEl.scrollLeft -= half;
+    list.forEach(function (b, i) {
+      var a = document.createElement('a');
+      a.className = 'banner-slide' + (i === 0 ? ' on' : '');
+      a.href = b.link || '#0';
+      if (b.image) {
+        /* a consistent dark wash regardless of the uploaded photo, so the
+           white title/CTA text stays readable no matter what gets uploaded */
+        /* JSON.stringify (kept WITH its own quotes, not sliced off) doubles as a
+           correctly-escaped CSS url("...") string — handles spaces/quotes/etc.
+           in an uploaded filename without hand-rolling CSS escaping. */
+        a.style.backgroundImage = 'linear-gradient(100deg, rgba(6,10,22,.82) 0%, rgba(6,10,22,.35) 55%, rgba(6,10,22,.15) 100%), url(' + JSON.stringify(b.image) + ')';
+      } else {
+        a.style.background = FALLBACK_ART[i % FALLBACK_ART.length];
       }
-      requestAnimationFrame(autoScroll);
-    })();
+      a.setAttribute('aria-hidden', i === 0 ? 'false' : 'true');
+      a.innerHTML =
+        (b.tag ? '<em>' + b.tag + '</em>' : '') +
+        '<b>' + b.title + '</b>' +
+        (b.text ? '<span>' + b.text + '</span>' : '') +
+        (b.cta ? '<i>' + b.cta + ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i>' : '');
+      bTrack.appendChild(a);
+
+      var d = document.createElement('button');
+      d.type = 'button';
+      d.className = 'banner-dot';
+      d.textContent = i + 1;
+      d.setAttribute('aria-label', 'Banner ' + (i + 1));
+      d.setAttribute('aria-current', i === 0 ? 'true' : 'false');
+      d.addEventListener('click', function () { show(i); restart(); });
+      bNav.appendChild(d);
+    });
+
+    function show(i) {
+      bIndex = (i + list.length) % list.length;
+      bTrack.querySelectorAll('.banner-slide').forEach(function (el, n) {
+        var on = n === bIndex;
+        el.classList.toggle('on', on);
+        el.setAttribute('aria-hidden', on ? 'false' : 'true');
+      });
+      bNav.querySelectorAll('.banner-dot').forEach(function (el, n) {
+        el.setAttribute('aria-current', n === bIndex ? 'true' : 'false');
+      });
+    }
+    function restart() {
+      clearInterval(bTimer);
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && list.length > 1) {
+        bTimer = setInterval(function () { show(bIndex + 1); }, 6000);
+      }
+    }
+    document.getElementById('banner-prev').addEventListener('click', function () { show(bIndex - 1); restart(); });
+    document.getElementById('banner-next').addEventListener('click', function () { show(bIndex + 1); restart(); });
+    /* pause while the pointer is over the banner so a slide can be read/clicked */
+    bTrack.addEventListener('mouseenter', function () { clearInterval(bTimer); });
+    bTrack.addEventListener('mouseleave', restart);
+    restart();
   }
+
+  fetch('banners.json', { cache: 'no-cache' })
+    .then(function (r) { if (!r.ok) throw new Error('no banners.json'); return r.json(); })
+    .then(function (data) {
+      var list = (data && data.banners && data.banners.length) ? data.banners : FALLBACK_BANNERS;
+      renderBanners(list);
+    })
+    .catch(function () { renderBanners(FALLBACK_BANNERS); });
 
   })();

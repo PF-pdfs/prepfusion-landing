@@ -1,0 +1,28 @@
+{
+  "banners": [
+    {
+      "tag": "Admissions open",
+      "title": "GATE 2027 TITANS Batch",
+      "text": "Full syllabus, live guidance, 1:1 mentorship and the complete test series.",
+      "cta": "Explore the batch",
+      "link": "https://prepfusion.in/new-courses?examId=6",
+      "image": ""
+    },
+    {
+      "tag": "Free to start",
+      "title": "Complete subjects, free to watch",
+      "text": "Watch a full subject end to end before you spend anything. No card needed.",
+      "cta": "Browse free courses",
+      "link": "https://prepfusion.in/zero-price-courses",
+      "image": ""
+    },
+    {
+      "tag": "Placements",
+      "title": "Campus to Core VLSI",
+      "text": "Analog and Digital interview prep, screening tests and a dedicated placement series.",
+      "cta": "See placement courses",
+      "link": "https://prepfusion.in/new-courses?examId=7",
+      "image": ""
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+# Decap CMS config for the banner carousel — the only content this site
+# needs a non-technical editing panel for. Everything else on the page is
+# still plain static HTML, edited via code as before.
+#
+# ⚠ base_url below is a PLACEHOLDER. GitHub's OAuth login requires a small
+# server-side step (exchanging a code for a token — can't be done from the
+# browser alone, GitHub doesn't allow it), so this needs a tiny OAuth proxy
+# deployed once. See admin/OAUTH_SETUP.md in this repo for the exact steps —
+# it's a ~10-minute one-time setup on Cloudflare Workers' free tier (you're
+# already using Cloudflare for DNS, so no new account needed), not something
+# that can be done without your GitHub/Cloudflare account access.
+
+backend:
+  name: github
+  repo: PF-study-hub/prepfusion-landing
+  branch: main
+  base_url: https://REPLACE-WITH-YOUR-OAUTH-WORKER.workers.dev
+  auth_endpoint: auth
+
+# Images uploaded through the CMS land here and get committed to the repo
+# alongside everything else — same folder the mentor photos already live in.
+media_folder: "assets/img/banners"
+public_folder: "assets/img/banners"
+
+collections:
+  - name: "banners"
+    label: "Homepage Banners"
+    files:
+      - name: "banners"
+        label: "Banner Carousel"
+        file: "banners.json"
+        description: "The rotating banner strip under the header. Drag rows to reorder — order here is the order they play in."
+        fields:
+          - { name: "banners", label: "Banners", widget: "list", summary: "{{fields.title}}", fields: [
+              { name: "title", label: "Headline", widget: "string", hint: "Short — this is the big bold line on the slide." },
+              { name: "tag", label: "Small label (optional)", widget: "string", required: false, hint: "e.g. \"Admissions open\" — the small pill above the headline." },
+              { name: "text", label: "Description (optional)", widget: "text", required: false },
+              { name: "cta", label: "Button text (optional)", widget: "string", required: false, default: "Learn more" },
+              { name: "link", label: "Where the whole slide links to", widget: "string", hint: "Full URL, e.g. https://prepfusion.in/new-courses?examId=6" },
+              { name: "image", label: "Background image (optional)", widget: "image", required: false, hint: "Recommended ~1160×380px landscape. Leave empty to use a plain color background instead." }
+            ] }
