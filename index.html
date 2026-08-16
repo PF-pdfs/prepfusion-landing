@@ -7,13 +7,17 @@
 <meta name="description" content="GATE, ESE and placement preparation for ECE, EE and IN — taught by AIR holders. Every core subject free forever, the same videos as the paid course." />
 <link rel="icon" href="assets/img/favicon.png" />
 <script>
-  /* Blocking, on purpose: sets the saved theme before first paint so there's
-     no flash of the wrong theme while the deferred script.js loads. */
+  /* Blocking, on purpose: sets the theme before first paint so there's no
+     flash of the wrong theme while the deferred script.js loads.
+     Dark by default: a first-time visitor sees dark regardless of their OS
+     setting, unless they've explicitly chosen light here before. Matches
+     script.js's toggle logic below — keep the two in sync. */
   (function () {
+    var theme = 'dark';
     try {
-      var saved = localStorage.getItem('pf-theme');
-      if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
-    } catch (err) { /* storage blocked — falls back to prefers-color-scheme */ }
+      if (localStorage.getItem('pf-theme') === 'light') theme = 'light';
+    } catch (err) { /* storage blocked — falls back to the dark default */ }
+    document.documentElement.setAttribute('data-theme', theme);
   })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />

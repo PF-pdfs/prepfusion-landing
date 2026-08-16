@@ -1,18 +1,15 @@
 (function () {
   'use strict';
 
-  /* ---------------- theme toggle, persisted ---------------- */
+  /* ---------------- theme toggle, persisted ----------------
+     Dark by default (see the blocking inline script in index.html's <head>,
+     which already set data-theme before this file even loaded — this just
+     wires up the button to flip it). */
   var THEME_KEY = 'pf-theme';
   var themeBtn = document.getElementById('theme-toggle');
   if (themeBtn) {
-    var saved = null;
-    try { saved = localStorage.getItem(THEME_KEY); } catch (err) { /* storage blocked — fall back to system */ }
-    if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
-
     themeBtn.addEventListener('click', function () {
-      var current = document.documentElement.getAttribute('data-theme');
-      var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      var isDark = current ? current === 'dark' : systemDark;
+      var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
       var next = isDark ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
       try { localStorage.setItem(THEME_KEY, next); } catch (err) { /* storage blocked, theme still applies this visit */ }
