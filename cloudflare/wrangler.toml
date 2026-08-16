@@ -17,6 +17,14 @@ name = "prepfusion-landing-apex"
 main = "worker.js"
 compatibility_date = "2024-09-23"
 
+# Explicit on purpose: Wrangler defaults this off once custom `routes` are
+# present, which silently dropped the workers.dev URL this whole apex change
+# has been tested through (isolated from the live domain) — a real deploy
+# hit this exact warning mid-troubleshooting. Keeping it on keeps that
+# always-available, zero-risk test URL: prepfusion-landing-apex.<your
+# account subdomain>.workers.dev.
+workers_dev = true
+
 routes = [
   { pattern = "prepfusion.in/", zone_name = "prepfusion.in" },
   { pattern = "prepfusion.in/styles.css", zone_name = "prepfusion.in" },
