@@ -1,0 +1,26 @@
+# prepfusion.in apex Worker — deploy config
+#
+# Deployed with `wrangler deploy` from inside this cloudflare/ directory.
+# See README.md for the one-time manual setup this assumes already exists
+# (this domain is already a Cloudflare zone — see gate_pdfs/cloudflare/README.md
+# in the sibling repo for why, and how it was set up).
+#
+# The safety of this whole approach lives in the `routes` list below being
+# an EXACT set of paths, not a wildcard. Only requests matching one of these
+# five patterns ever reach the Worker; every other path on the domain
+# (every /new-courses/*, /terms, /test-series, ...) never touches it and
+# flows straight to Vercel exactly as it does today. Confirmed against the
+# live Vercel app (only ever uses /_next/static/*) that none of these five
+# collide with anything it actually serves.
+
+name = "prepfusion-landing-apex"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+routes = [
+  { pattern = "prepfusion.in/", zone_name = "prepfusion.in" },
+  { pattern = "prepfusion.in/styles.css", zone_name = "prepfusion.in" },
+  { pattern = "prepfusion.in/script.js", zone_name = "prepfusion.in" },
+  { pattern = "prepfusion.in/banners.json", zone_name = "prepfusion.in" },
+  { pattern = "prepfusion.in/assets/*", zone_name = "prepfusion.in" }
+]
