@@ -157,15 +157,16 @@ a { color: inherit; }
 .proto button[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: #0a1020; }
 
 /* ---------- site header ----------
-   Fixed, not sticky: the header lives inside .hero, and .hero has
-   overflow:hidden — which silently disables position:sticky for anything
-   inside it (same trap as the comparison table's sticky column below). Fixed
-   escapes that, and is what "constant on every screen" actually needs, since
-   a sticky header would stop at the bottom of .hero regardless.
-   --bar-h is the height it no longer occupies in flow; .hero pads by it. */
+   Fixed, and a direct child of <body>. It used to sit inside .hero, which is
+   both overflow:hidden (silently disabling position:sticky for anything
+   inside it) and isolation:isolate — a stacking context, so the header's
+   z-index was clamped inside .hero and later page content painted straight
+   over it. Out here it stacks against the page, above everything except the
+   modal overlays. --bar-h is the height it no longer occupies in flow;
+   .hero pads by it. */
 :root { --bar-h: 63px; }
 .bar {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 130;
   background: var(--paper); border-bottom: 1px solid var(--line);
   transition: background-color .25s ease, border-color .25s ease;
 }
@@ -255,10 +256,10 @@ a { color: inherit; }
    Always rendered (not display:none) so the transform can animate — it is
    moved off-screen and made inert with visibility instead. */
 .mobile-nav {
-  position: fixed; top: 0; left: 0; bottom: 0; z-index: 90;
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 160;
   width: min(82vw, 320px); display: flex; flex-direction: column; gap: 2px;
   background: var(--deep-2); border-right: 1px solid rgba(255,255,255,.12);
-  padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+  padding: 14px 18px calc(18px + env(safe-area-inset-bottom));
   box-shadow: 24px 0 50px -24px rgba(0,0,0,.75);
   overflow-y: auto; overscroll-behavior: contain;
   transform: translateX(-100%); visibility: hidden;
@@ -268,7 +269,7 @@ a { color: inherit; }
 /* Tapping anywhere off the drawer closes it — and the dim makes it obvious
    the page behind is not what you are interacting with. */
 .nav-scrim {
-  position: fixed; inset: 0; z-index: 85;
+  position: fixed; inset: 0; z-index: 150;
   background: rgba(6,10,22,.6); backdrop-filter: blur(2px);
   opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility .3s;
 }
@@ -731,7 +732,11 @@ h1 .hl { color: var(--accent); }
 .foot-brand p { color: var(--ink-soft); font-size: 14px; margin: 12px 0 0; max-width: 34ch; }
 .foot-bot { border-top: 1px solid var(--line); }
 .foot-bot div { max-width: 1160px; margin: 0 auto; padding: 18px 24px; display: flex; gap: 16px; flex-wrap: wrap; font: 500 12.5px var(--mono); color: var(--ink-faint); }
-.foot-bot .sp { margin-left: auto; }
+/* The email used to be pushed to the right edge with margin-left:auto, which
+   put it directly under the floating WhatsApp button at every width. Everything
+   in this bar now reads left-to-right, and the bar keeps clear space beneath it
+   so the button never covers the last line of the page. */
+.foot-bot div { padding-bottom: 74px; }
 
 /* =========================================================================
    BANNER CAROUSEL — full-bleed rotating promo slides under the header.
@@ -903,6 +908,9 @@ h1 .hl { color: var(--accent); }
 }
 @media (max-width: 620px) {
   .banners { padding: 14px 16px 0; }
+  /* Tighter stacking than desktop; the left-alignment and the clearance for
+     the floating button are in the base rule. */
+  .foot-bot div { gap: 6px; padding-bottom: 84px; }
   .banner-track { aspect-ratio: 4 / 3; }
   .banner-arrow { width: 32px; height: 32px; }
   .banner-arrow.prev { left: 8px; }
@@ -994,4 +1002,24 @@ h1 .hl { color: var(--accent); }
 .foot-apps p {
   margin: 0 0 10px; font-size: 12.5px; line-height: 1.5; color: var(--ink-faint);
 }
-.foot-apps ul a { display: inline-flex; align-items: center; gap: 7px; }
+.foot-apps ul a { display: inline-flex; align-items: center; gap: 8px; }
+/* Inline SVG rather than the official store badges used on prepfusion.in:
+   those are external raster assets with their own brand sizing rules, and
+   five stacked would outweigh every other footer column. */
+.app-ic { width: 16px; height: 16px; flex: none; }
+
+/* Drawer header: the hamburger that opened the drawer is underneath it once
+   it slides out, so the drawer carries its own way to close. */
+.mobile-nav-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding-bottom: 12px; margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+.mobile-nav-head .logo { color: #fff; font: 800 19px/1 var(--display); letter-spacing: -.03em; }
+.mobile-nav-head .logo b { color: var(--accent); }
+.mobile-nav-close {
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+  border: 1.5px solid rgba(255,255,255,.28); background: transparent; color: #fff;
+}
+.mobile-nav-close:hover { background: rgba(255,255,255,.12); }

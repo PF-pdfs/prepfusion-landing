@@ -235,6 +235,10 @@
     burgerBtn.addEventListener('click', function () {
       setDrawer(!mobileNav.classList.contains('on'));
     });
+    /* the burger sits underneath the open drawer, so the drawer needs its own
+       close control — see .mobile-nav-head */
+    var navCloseBtn = document.getElementById('mobile-nav-close');
+    if (navCloseBtn) navCloseBtn.addEventListener('click', function () { setDrawer(false); });
     mobileNav.querySelectorAll('a').forEach(function (a) {
       a.addEventListener('click', function () { setDrawer(false); });
     });
