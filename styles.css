@@ -581,6 +581,14 @@ h1 .hl { color: var(--accent); }
 /* compact horizontal carousel, snap-scrolled, with clamped quote length so
    every card is the same height regardless of the original testimonial's size */
 .quotes-wrap { position: relative; margin-top: 18px; }
+.quotes-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px;
+  border-radius: 50%; border: 1.5px solid var(--line-strong); background: var(--card);
+  color: var(--ink); display: grid; place-items: center; cursor: pointer; box-shadow: var(--shadow-lift);
+}
+.quotes-nav:hover { background: var(--chipbg); }
+.quotes-nav.prev { left: -18px; }
+.quotes-nav.next { right: -18px; }
 .quotes {
   display: flex; gap: 14px; overflow-x: auto;
   padding: 4px 4px 4px; margin: 0 -4px; scrollbar-width: none;
@@ -702,6 +710,11 @@ h1 .hl { color: var(--accent); }
   background-size: cover; background-position: center;
 }
 .banner-slide.on { opacity: 1; visibility: visible; }
+/* "full image" banners: the graphic already has its own text/branding, so
+   it's shown whole via object-fit:contain (never cropped) instead of the
+   grid/padding layout above — same rule on mobile and desktop alike. */
+.banner-slide.img-only { display: block; padding: 0; background: var(--deep-2); }
+.banner-slide.img-only img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .banner-slide em {
   font-style: normal; justify-self: start;
   font: 700 10.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase;

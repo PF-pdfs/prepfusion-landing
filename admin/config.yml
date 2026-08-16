@@ -31,11 +31,20 @@ collections:
         file: "banners.json"
         description: "The rotating banner strip under the header. Drag rows to reorder — order here is the order they play in."
         fields:
-          - { name: "banners", label: "Banners", widget: "list", summary: "{{fields.title}}", fields: [
-              { name: "title", label: "Headline", widget: "string", hint: "Short — this is the big bold line on the slide." },
-              { name: "tag", label: "Small label (optional)", widget: "string", required: false, hint: "e.g. \"Admissions open\" — the small pill above the headline." },
-              { name: "text", label: "Description (optional)", widget: "text", required: false },
-              { name: "cta", label: "Button text (optional)", widget: "string", required: false, default: "Learn more" },
+          - { name: "banners", label: "Banners", widget: "list", summary: "{{fields.type}} — {{fields.title}}", fields: [
+              { name: "type", label: "Banner style", widget: "select", default: "text",
+                hint: "Read admin/HOW_TO_ADD_BANNERS.md once if this is your first time — it explains the two styles with pictures of what each one produces.",
+                options: [
+                  { label: "Text banner — headline + button, on a plain color or photo background", value: "text" },
+                  { label: "Full image banner — your own finished design, shown exactly as you made it", value: "image" }
+                ] },
+              { name: "title", label: "Headline (Text banner only)", widget: "string", required: false, hint: "Short — this is the big bold line on the slide. Leave blank for a Full image banner." },
+              { name: "tag", label: "Small label (Text banner only, optional)", widget: "string", required: false, default: "Admissions open",
+                hint: "The small pill above the headline. A few you've used before: \"Admissions open\", \"Free to start\", \"Placements\", \"New batch\". Leave the default, pick one of those, or type your own." },
+              { name: "text", label: "Description (Text banner only, optional)", widget: "text", required: false },
+              { name: "cta", label: "Button text (Text banner only, optional)", widget: "string", required: false, default: "Learn more",
+                hint: "A few you've used before: \"Explore the batch\", \"Browse free courses\", \"See placement courses\". Leave the default, pick one of those, or type your own." },
               { name: "link", label: "Where the whole slide links to", widget: "string", hint: "Full URL, e.g. https://prepfusion.in/new-courses?examId=6" },
-              { name: "image", label: "Background image (optional)", widget: "image", required: false, hint: "Recommended ~1160×380px landscape. Leave empty to use a plain color background instead." }
+              { name: "image", label: "Image", widget: "image", required: false,
+                hint: "For a Text banner: an optional photo background (recommended ~1160×380px landscape, it'll be cropped to fit). For a Full image banner: your complete graphic, shown in full without cropping — see HOW_TO_ADD_BANNERS.md for the best size." }
             ] }

@@ -547,24 +547,38 @@
 
     list.forEach(function (b, i) {
       var a = document.createElement('a');
-      a.className = 'banner-slide' + (i === 0 ? ' on' : '');
+      /* "image" type banners are a complete, pre-designed graphic (already
+         has its own text/branding baked in) — shown as-is, full-bleed, with
+         no site text overlaid on top. Same treatment on mobile and desktop:
+         one image, object-fit:contain, so nothing gets cropped either way. */
+      var isImageOnly = b.type === 'image' && b.image;
+      a.className = 'banner-slide' + (isImageOnly ? ' img-only' : '') + (i === 0 ? ' on' : '');
       a.href = b.link || '#0';
-      if (b.image) {
-        /* a consistent dark wash regardless of the uploaded photo, so the
-           white title/CTA text stays readable no matter what gets uploaded */
-        /* JSON.stringify (kept WITH its own quotes, not sliced off) doubles as a
-           correctly-escaped CSS url("...") string — handles spaces/quotes/etc.
-           in an uploaded filename without hand-rolling CSS escaping. */
-        a.style.backgroundImage = 'linear-gradient(100deg, rgba(6,10,22,.82) 0%, rgba(6,10,22,.35) 55%, rgba(6,10,22,.15) 100%), url(' + JSON.stringify(b.image) + ')';
-      } else {
-        a.style.background = FALLBACK_ART[i % FALLBACK_ART.length];
-      }
       a.setAttribute('aria-hidden', i === 0 ? 'false' : 'true');
-      a.innerHTML =
-        (b.tag ? '<em>' + b.tag + '</em>' : '') +
-        '<b>' + b.title + '</b>' +
-        (b.text ? '<span>' + b.text + '</span>' : '') +
-        (b.cta ? '<i>' + b.cta + ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i>' : '');
+
+      if (isImageOnly) {
+        var img = document.createElement('img');
+        img.src = b.image;
+        img.alt = b.title || 'Banner';
+        img.loading = i === 0 ? 'eager' : 'lazy';
+        a.appendChild(img);
+      } else {
+        if (b.image) {
+          /* a consistent dark wash regardless of the uploaded photo, so the
+             white title/CTA text stays readable no matter what gets uploaded */
+          /* JSON.stringify (kept WITH its own quotes, not sliced off) doubles as a
+             correctly-escaped CSS url("...") string — handles spaces/quotes/etc.
+             in an uploaded filename without hand-rolling CSS escaping. */
+          a.style.backgroundImage = 'linear-gradient(100deg, rgba(6,10,22,.82) 0%, rgba(6,10,22,.35) 55%, rgba(6,10,22,.15) 100%), url(' + JSON.stringify(b.image) + ')';
+        } else {
+          a.style.background = FALLBACK_ART[i % FALLBACK_ART.length];
+        }
+        a.innerHTML =
+          (b.tag ? '<em>' + b.tag + '</em>' : '') +
+          '<b>' + b.title + '</b>' +
+          (b.text ? '<span>' + b.text + '</span>' : '') +
+          (b.cta ? '<i>' + b.cta + ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i>' : '');
+      }
       bTrack.appendChild(a);
 
       var d = document.createElement('button');
