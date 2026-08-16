@@ -95,14 +95,6 @@
             Learn through concepts. Understand through intuition. Grow with guidance. A complete learning
             experience designed to help you build strong fundamentals and achieve your goals.
           </p>
-          <div class="hero-cta">
-            <a class="btn btn-green btn-lg" href="#0" data-external="free">Start free &mdash; no strings attached</a>
-            <a class="btn btn-y btn-lg" href="#0" data-external="gate">GATE Courses</a>
-            <a class="btn btn-y btn-lg" href="#0" data-external="placement">Placement Courses</a>
-            <span class="info-ic" aria-label="About these links">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
-            </span>
-          </div>
         </div>
 
         <div class="proof">
@@ -191,7 +183,15 @@
       </div>
     </div>
 
-    <div class="quotes-grid" id="quotes"></div>
+    <div class="quotes-wrap">
+      <button type="button" class="quotes-nav prev" id="q-prev" aria-label="Previous testimonials">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="quotes" id="quotes"></div>
+      <button type="button" class="quotes-nav next" id="q-next" aria-label="More testimonials">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
   </section>
 
   <!-- ---------------- RANKERS' INTERVIEW PANEL ---------------- -->
@@ -433,6 +433,22 @@
     <div class="vid-frame-wrap" id="vid-frame-wrap"></div>
     <p class="rankers-strip-head">All 39 interviews &mdash; tap any card to switch</p>
     <div class="rankers-strip" id="rankers-strip"></div>
+  </div>
+</div>
+
+<!-- ==================== TESTIMONIAL FULL-TEXT POPUP ==================== -->
+<div class="vid-scrim" id="quote-scrim">
+  <div class="vid-sheet quote-sheet" role="dialog" aria-label="Testimonial">
+    <div class="vid-sheet-head">
+      <span class="q-av" id="quote-modal-av"></span>
+      <h3 id="quote-modal-name"></h3>
+      <button type="button" class="vid-sheet-x" id="quote-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="quote-sheet-body">
+      <span class="stars" aria-label="5 out of 5" id="quote-modal-stars"></span>
+      <p id="quote-modal-text"></p>
+      <em id="quote-modal-role"></em>
+    </div>
   </div>
 </div>
 <script src="script.js" defer></script>

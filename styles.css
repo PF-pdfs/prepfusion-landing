@@ -453,6 +453,13 @@ h1 .hl { color: var(--accent); }
 .vid-frame-wrap { aspect-ratio: 16/9; background: var(--deep-2); }
 .vid-frame-wrap iframe { width: 100%; height: 100%; border: 0; display: block; }
 
+/* ---------- testimonial full-text popup (reuses .vid-scrim/.vid-sheet) ---------- */
+.quote-sheet { width: min(560px, 100%); max-height: 80vh; }
+.quote-sheet .vid-sheet-head h3 { font-size: 15px; }
+.quote-sheet-body { padding: 18px 20px 22px; display: grid; gap: 13px; }
+.quote-sheet-body p { margin: 0; font-size: 15.5px; line-height: 1.65; color: var(--ink-soft); }
+.quote-sheet-body em { font-style: normal; font: 500 12.5px var(--mono); color: var(--ink-faint); }
+
 /* Our own visible, clickable playlist strip — not relying on YouTube's
    native in-player sidebar, whose expand affordance is a small icon easy
    to miss entirely (that was the actual bug students hit). */
@@ -736,13 +743,14 @@ h1 .hl { color: var(--accent); }
 .rank-chips em.more { color: var(--hero-soft); background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.16); }
 
 /* =========================================================================
-   TESTIMONIALS — two rank spotlights + a full-text grid (no truncation,
-   no auto-scroll: the old 5-line clamp made quotes unreadable)
+   TESTIMONIALS — two rank spotlights above a compact auto-scrolling
+   carousel. Each card is clamped to 5 lines to keep the strip compact;
+   clicking a card opens the full text in a popup (.quote-sheet below)
+   instead of stretching every card to full height.
    ========================================================================= */
 .spotlights { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 26px; }
-.quotes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px; margin-top: 16px; }
-.quotes-grid .quote { flex: none; }
-.quotes-grid .quote p { display: block; overflow: visible; }
+.quote { cursor: pointer; }
+.quote:hover, .quote:focus-visible { border-color: var(--line-strong); }
 
 /* =========================================================================
    FAQ — richer answers (the free/paid split and the batch table now live

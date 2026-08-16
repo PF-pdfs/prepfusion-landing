@@ -411,19 +411,89 @@
 
   var star = '<svg width="12" height="12" viewBox="0 0 24 24" fill="var(--accent)" aria-hidden="true"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1Z"/></svg>';
   var qEl = document.getElementById('quotes');
+  var quoteScrim = document.getElementById('quote-scrim');
+  var quoteCloseBtn = document.getElementById('quote-close');
+
+  function openQuote(q) {
+    document.getElementById('quote-modal-av').textContent = q.i;
+    document.getElementById('quote-modal-name').textContent = q.n;
+    document.getElementById('quote-modal-text').textContent = q.t;
+    document.getElementById('quote-modal-role').textContent = q.r;
+    document.getElementById('quote-modal-stars').innerHTML = star + star + star + star + star;
+    quoteScrim.classList.add('on');
+  }
+  function closeQuote() { quoteScrim.classList.remove('on'); }
+  if (quoteCloseBtn) quoteCloseBtn.addEventListener('click', closeQuote);
+  if (quoteScrim) quoteScrim.addEventListener('click', function (e) { if (e.target === quoteScrim) closeQuote(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && quoteScrim && quoteScrim.classList.contains('on')) closeQuote();
+  });
+
   if (qEl) {
-    /* One card per quote, full text, no clones and no auto-scroll — the old
-       carousel duplicated the list for a seamless loop and clamped each quote
-       to 5 lines, which is exactly why the testimonials couldn't be read. */
-    QUOTES.forEach(function (q) {
+    function quoteCard(q) {
       var b = document.createElement('blockquote');
       b.className = 'quote';
+      b.tabIndex = 0;
+      b.setAttribute('role', 'button');
+      b.setAttribute('aria-label', 'Read the full testimonial from ' + q.n);
       b.innerHTML =
         '<span class="stars" aria-label="5 out of 5">' + star + star + star + star + star + '</span>' +
         '<p>' + q.t + '</p>' +
         '<footer><span class="q-av">' + q.i + '</span><span>' + q.n + '<em>' + q.r + '</em></span></footer>';
-      qEl.appendChild(b);
-    });
+      b.addEventListener('click', function () { openQuote(q); });
+      b.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openQuote(q); }
+      });
+      return b;
+    }
+    /* Rendered twice back to back: auto-scroll runs across set 1, and the
+       instant it crosses into set 2 the scroll position is snapped back by
+       exactly one set's width — since the two sets are identical, that jump
+       is invisible, giving an infinite loop with no easing/reset stutter. */
+    QUOTES.forEach(function (q) { qEl.appendChild(quoteCard(q)); });
+    QUOTES.forEach(function (q) { qEl.appendChild(quoteCard(q)); });
+  }
+
+  var qPrev = document.getElementById('q-prev');
+  var qNext = document.getElementById('q-next');
+  var qWrap = document.querySelector('.quotes-wrap');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var qPaused = false;
+  var qResumeTimer = null;
+
+  function pauseAuto(ms) {
+    qPaused = true;
+    clearTimeout(qResumeTimer);
+    qResumeTimer = setTimeout(function () { qPaused = false; }, ms || 2600);
+  }
+
+  function scrollQuotes(dir) {
+    if (!qEl) return;
+    pauseAuto(3200);
+    var card = qEl.querySelector('.quote');
+    var step = card ? card.getBoundingClientRect().width + 14 : 300;
+    qEl.scrollBy({ left: dir * step * 2, behavior: 'smooth' });
+  }
+  if (qPrev) qPrev.addEventListener('click', function () { scrollQuotes(-1); });
+  if (qNext) qNext.addEventListener('click', function () { scrollQuotes(1); });
+
+  if (qEl && qWrap && !reduceMotion) {
+    qWrap.addEventListener('mouseenter', function () { qPaused = true; clearTimeout(qResumeTimer); });
+    qWrap.addEventListener('mouseleave', function () { qPaused = false; });
+    qWrap.addEventListener('touchstart', function () { pauseAuto(4000); }, { passive: true });
+    qWrap.addEventListener('focusin', function () { qPaused = true; clearTimeout(qResumeTimer); });
+    qWrap.addEventListener('focusout', function () { qPaused = false; });
+    /* wheel/trackpad or a manual drag also count as "the user is reading" */
+    qEl.addEventListener('wheel', function () { pauseAuto(3200); }, { passive: true });
+
+    (function autoScroll() {
+      if (!qPaused) {
+        var half = qEl.scrollWidth / 2;
+        qEl.scrollLeft += 0.45;
+        if (qEl.scrollLeft >= half) qEl.scrollLeft -= half;
+      }
+      requestAnimationFrame(autoScroll);
+    })();
   }
 
   /* ---------------- banner carousel ----------------
