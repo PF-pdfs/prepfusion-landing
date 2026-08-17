@@ -5,13 +5,17 @@
 # (this domain is already a Cloudflare zone — see gate_pdfs/cloudflare/README.md
 # in the sibling repo for why, and how it was set up).
 #
-# The safety of this whole approach lives in the `routes` list below being
-# an EXACT set of paths, not a wildcard. Only requests matching one of these
-# five patterns ever reach the Worker; every other path on the domain
-# (every /new-courses/*, /terms, /test-series, ...) never touches it and
-# flows straight to Vercel exactly as it does today. Confirmed against the
-# live Vercel app (only ever uses /_next/static/*) that none of these five
-# collide with anything it actually serves.
+# Redirects the bare homepage ONLY to go.prepfusion.in — not a full same-URL
+# serve of the landing page. That was tried three different ways tonight
+# (go.prepfusion.in direct, raw.githubusercontent.com, a service-bound
+# static-assets project) and all three hit real, reproduced reliability
+# problems, always specifically when the Worker had to FETCH content from
+# somewhere else. A redirect fetches nothing — see worker.js.
+#
+# The safety of this whole approach lives in the `routes` list below matching
+# ONLY the exact bare path. Every other path on the domain (every
+# /new-courses/*, /terms, /test-series, ...) never touches this Worker at
+# all and flows straight to Vercel exactly as it does today.
 
 name = "prepfusion-landing-apex"
 main = "worker.js"
@@ -26,20 +30,5 @@ compatibility_date = "2024-09-23"
 workers_dev = true
 
 routes = [
-  { pattern = "prepfusion.in/", zone_name = "prepfusion.in" },
-  { pattern = "prepfusion.in/styles.css", zone_name = "prepfusion.in" },
-  { pattern = "prepfusion.in/script.js", zone_name = "prepfusion.in" },
-  { pattern = "prepfusion.in/banners.json", zone_name = "prepfusion.in" },
-  { pattern = "prepfusion.in/assets/*", zone_name = "prepfusion.in" }
+  { pattern = "prepfusion.in/", zone_name = "prepfusion.in" }
 ]
-
-# A plain fetch() to prepfusion-landing's own public URL hit error 1042 —
-# Cloudflare blocks same-ACCOUNT Worker-to-Worker fetches over the public
-# network (not just same-zone, as first assumed; reproduced between two
-# workers.dev projects, which aren't even in the same DNS zone). A service
-# binding is Cloudflare's own documented answer: it calls the other Worker
-# internally, same server, same thread, never touches the public network or
-# its loop-detection at all.
-[[services]]
-binding = "LANDING_SITE"
-service = "prepfusion-landing"
