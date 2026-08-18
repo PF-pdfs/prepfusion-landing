@@ -1,0 +1,9 @@
+# Excludes these from the Cloudflare Worker's static-assets upload
+# (cloudflare/wrangler.toml's [assets] directory = "../", the repo root).
+# GitHub-Pages-specific files and the Worker's own source have no reason to
+# be uploaded as servable "assets" of the Worker itself.
+.git
+cloudflare
+.nojekyll
+CNAME
+.assetsignore

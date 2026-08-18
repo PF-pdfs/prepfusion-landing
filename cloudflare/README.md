@@ -1,72 +1,82 @@
-# Putting the landing page on the prepfusion.in apex — one-time manual setup
+# Domain swap: landing page onto prepfusion.in, store onto courses.prepfusion.in
 
-This is the part that genuinely needs your own Cloudflare account and can't be scripted or run
-from here. Do these in order. Nothing touches the live store until the very last step, and that
-step is a single one-click toggle you can instantly reverse.
+This Worker is the **bridge** that makes the swap safe: it serves the landing page at
+`prepfusion.in`, and 301s every other path — all the old store URLs — to the same path on
+`courses.prepfusion.in`. Without it, every existing bookmark, shared WhatsApp link, backlink and
+Google result pointing at a course page would 404 the moment the domain changes.
 
-## Why this is safe
+It is meant to be **temporary**. Once links and search results have had time to update (a few
+weeks is reasonable), the Worker can be deleted and the apex pointed straight at the landing page.
 
-`prepfusion.in` is already a Cloudflare zone (set up for `pyq.prepfusion.in` — see
-`gate_pdfs/cloudflare/README.md` in the sibling repo for that history). The apex `@` record is
-currently **DNS only** (grey cloud), pointing straight at Vercel, which is why `prepfusion.in`
-today serves the course store directly with nothing in front of it.
+## ⚠ Prerequisite — do NOT deploy before this is true
 
-This Worker only ever sees five exact paths — `/`, `/styles.css`, `/script.js`, `/banners.json`,
-`/assets/*` — set as explicit routes in `wrangler.toml`, not a wildcard. Cloudflare's own routing
-table decides what reaches the Worker at all; every other path (`/new-courses/*`, `/terms`,
-`/test-series`, `/zero-price-courses`, `/refund-policy`, `/privacy-policy`, and anything added to
-the store later) never touches it and flows straight to Vercel exactly as it does today. This was
-checked against the live site before writing the Worker, not assumed: the Vercel app only ever
-uses `/_next/static/*` for its own assets, so there is no overlap with the five paths above.
+**`courses.prepfusion.in` must already be live, serving the store, with the same URL structure.**
 
-## 1. Deploy the Worker
+This is not a DNS-only step. Vercel will not serve a hostname that its project hasn't been
+configured to accept, so **Appx has to add `courses.prepfusion.in` as a domain on their Vercel
+project** — pointing DNS at Vercel without that gets a Vercel error page, not the store.
 
-From this `cloudflare/` directory:
+Verify before touching anything here:
 
 ```bash
-npx wrangler login
+curl -sI https://courses.prepfusion.in/new-courses?examId=6
+curl -s https://courses.prepfusion.in/terms | head -c 300
+```
+
+Both must return the real store — not a Vercel 404, not an error page. If they don't, stop:
+deploying this bridge now would redirect every old store URL to a dead domain, which is worse
+than leaving things alone, because it breaks the whole catalogue instead of one page.
+
+## How the two halves split
+
+`wrangler.toml`'s `[assets]` uploads the landing page's files to Cloudflare's storage. A request
+matching one of those files is served **directly from storage — `worker.js` is never invoked**,
+no CPU used, nothing billed against the Workers request quota. Only a request matching **no**
+static file falls through to `worker.js`, which 301s it to `courses.prepfusion.in`.
+
+That's also why the Free plan's 100,000 requests/day isn't a concern: the landing page itself —
+the overwhelming majority of traffic — costs zero Worker invocations. Only redirects of old store
+URLs count, and that number *declines over time* as links and indexes update. Exactly the traffic
+shape a temporary bridge should have.
+
+## Deploy
+
+```bash
+cd cloudflare
 npx wrangler deploy
 ```
 
-`wrangler login` opens a browser to authorize against your Cloudflare account — has to be you,
-interactive. `wrangler deploy` publishes `worker.js` and creates the five routes from
-`wrangler.toml`. **This step alone changes nothing visible yet** — a Worker route only fires for
-traffic that's already being proxied through Cloudflare, and the apex isn't proxied until step 2.
+Then test on the isolated `workers.dev` URL **before** touching live DNS —
+`prepfusion-landing-apex.<account subdomain>.workers.dev`. Confirm both halves:
 
-## 2. Set the route to fail open (Free plan only — do this before step 3)
+- `/` and `/styles.css` serve the landing page's own content
+- `/terms` and `/new-courses?examId=6` return a 301 to the matching `courses.prepfusion.in` URL
 
-The Workers Free plan caps the account at 100,000 Worker requests/day, shared across every Worker
-on the account (`gate_pdfs`'s PDF-download Worker draws from the same pool). This landing page is
-nowhere near that on its own, but it's worth setting the safe behavior for the day it ever is hit.
+## Going live
 
-Dashboard → Workers & Pages → this Worker → Settings → Routes → for each of the five routes, set
-**"Bypass on quota exceeded" / fail open** rather than the default. With this set, going over quota
-just makes `prepfusion.in/` silently revert to the old Vercel homepage for the rest of that day (UTC
-reset), instead of showing a Cloudflare error page. No outage either way — just which fallback you
-land on.
+Point the apex `A`/`CNAME` record for `prepfusion.in` at this Worker and set it **Proxied**
+(orange cloud) — a Worker route only fires for traffic Cloudflare is actually proxying.
 
-## 3. Flip the apex to Proxied — the one step that actually changes anything
+**Rollback** is the same toggle: set the record back to DNS-only (grey) and the apex goes back to
+whatever the record points at directly, with the Worker completely out of the path.
 
-Cloudflare dashboard → this zone → DNS → the `A` record for `@` (or `prepfusion.in`) → click the
-grey cloud icon so it turns **orange** (Proxied).
+## Verify after going live
 
-This is the entire change. It's also the entire rollback: click it back to grey and `prepfusion.in`
-instantly goes back to talking to Vercel directly, with the Worker completely out of the path,
-exactly as it behaves today.
+```bash
+curl -sI https://prepfusion.in/                      # 200, the landing page
+curl -sI https://prepfusion.in/terms                 # 301 -> courses.prepfusion.in/terms
+curl -sI "https://prepfusion.in/new-courses?examId=6" # 301, query string preserved
+```
 
-## 4. Verify
+Then load `https://prepfusion.in/` in a real browser and click through to a course — the whole
+path from landing page to store checkout should work end to end.
 
-- `https://prepfusion.in/` — should now show the landing page, with a valid certificate (Cloudflare
-  issues its own edge cert automatically once a record is proxied).
-- `https://prepfusion.in/new-courses?examId=6`, `/terms`, `/test-series`, `/zero-price-courses` —
-  should be **completely unaffected**, same as before this change. This is the check that actually
-  matters — confirm it before telling anyone the new page is live.
-- `https://prepfusion.in/styles.css`, `/script.js`, `/banners.json` — should load (not 404), proving
-  the Worker is serving the landing page's own assets correctly.
-- SSL/TLS mode for this zone should already be **Full** (set up for `pyq` — see the sibling repo's
-  doc), not Flexible. Only worth re-checking if step 3's cert looks wrong.
+## Known limits / what this does not fix
 
-## If anything looks wrong
-
-Flip the `@` record back to grey (DNS only) — instant full rollback, no waiting on propagation of
-anything else. Diagnose from there before trying again.
+- **The mobile apps.** If the Android/iOS/desktop apps hardcode `prepfusion.in` anywhere, this
+  bridge does not reach them — installed apps don't consult it. Only Appx can confirm and fix
+  that, and app-store review means a fix isn't fast. Check before swapping, not after.
+- **Payment gateway + API config.** Webhook URLs, redirect URLs and CORS allowed-origins
+  registered against `prepfusion.in` are Appx-side configuration. A redirect does not update them.
+- **SEO.** 301s pass most ranking value, but a domain move still typically costs some search
+  traffic temporarily while Google re-indexes.

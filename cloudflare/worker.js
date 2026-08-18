@@ -1,31 +1,31 @@
 /*
- * Redirects prepfusion.in's bare homepage to go.prepfusion.in. Nothing else.
+ * The fallback half of the domain-swap bridge. See wrangler.toml for the
+ * full picture and why the split matters.
  *
- * Deliberately NOT a full same-URL serve of the landing page — that was
- * tried three separate ways tonight (a plain fetch to go.prepfusion.in, to
- * raw.githubusercontent.com, and a service-bound static-assets project) and
- * all three hit real, reproduced reliability problems: error 1042
- * (Cloudflare's same-account loop detection, hit twice, once against
- * go.prepfusion.in directly and once against another Worker on this
- * account), raw.githubusercontent.com stalling unpredictably under repeat
- * requests (one hit 21s), and the static-assets project intermittently
- * stalling on large responses even via a service binding (up to ~20% of
- * requests over 2s in testing).
+ * This code only ever runs for a request that matched NO static asset —
+ * i.e. not the landing page, not its CSS/JS/images. In practice that means
+ * the old store URLs (/new-courses/..., /terms, /test-series, ...) that
+ * still point at this domain from bookmarks, shared links, search results
+ * and backlinks. Each one gets a permanent redirect to the same path on
+ * courses.prepfusion.in, so nothing that used to work starts 404ing.
  *
- * Every one of those failures happened because the Worker had to FETCH
- * content from somewhere else. This Worker fetches nothing. It reads the
- * incoming request and immediately returns a redirect — no origin, no
- * network call, no dependency on any other Cloudflare project or
- * third-party service. There is nothing here that can stall.
+ * Path AND query string are both preserved: /new-courses?examId=6 has to
+ * land on /new-courses?examId=6, not a bare /new-courses, or the visitor
+ * ends up somewhere real but wrong — worse than an error, because it looks
+ * deliberate.
  *
- * Only reached for the exact route prepfusion.in/ (see wrangler.toml) — the
- * route list itself, not this code, is what guarantees every other path on
- * the domain (every /new-courses/*, /terms, /test-series, ...) never
- * touches this Worker and flows straight to Vercel untouched.
+ * 301 (permanent) rather than 302: this tells search engines to move their
+ * index to the new URL, which is the entire point of running this bridge.
+ * The tradeoff is that browsers cache 301s aggressively — if the store's
+ * domain ever changes again, expect returning visitors to keep hitting the
+ * cached redirect for a while.
  */
 
+const STORE_ORIGIN = 'https://courses.prepfusion.in';
+
 export default {
-  async fetch() {
-    return Response.redirect('https://go.prepfusion.in/', 301);
+  async fetch(request) {
+    const url = new URL(request.url);
+    return Response.redirect(STORE_ORIGIN + url.pathname + url.search, 301);
   }
 };

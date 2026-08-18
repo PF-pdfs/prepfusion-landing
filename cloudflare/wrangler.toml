@@ -1,34 +1,56 @@
 # prepfusion.in apex Worker — deploy config
 #
 # Deployed with `wrangler deploy` from inside this cloudflare/ directory.
-# See README.md for the one-time manual setup this assumes already exists
-# (this domain is already a Cloudflare zone — see gate_pdfs/cloudflare/README.md
-# in the sibling repo for why, and how it was set up).
+# See README.md for the full procedure and the prerequisites this assumes.
 #
-# Redirects the bare homepage ONLY to go.prepfusion.in — not a full same-URL
-# serve of the landing page. That was tried three different ways tonight
-# (go.prepfusion.in direct, raw.githubusercontent.com, a service-bound
-# static-assets project) and all three hit real, reproduced reliability
-# problems, always specifically when the Worker had to FETCH content from
-# somewhere else. A redirect fetches nothing — see worker.js.
+# WHAT THIS DOES (the domain-swap bridge):
+#   prepfusion.in serves the landing page directly, and every OTHER path —
+#   all the old store URLs — 301s to the same path on courses.prepfusion.in.
+#   It's a temporary bridge so existing links, bookmarks and search results
+#   keep working after the store moves to its own subdomain; once those have
+#   had time to update/re-index, this Worker can be deleted and the apex
+#   pointed straight at the landing page.
 #
-# The safety of this whole approach lives in the `routes` list below matching
-# ONLY the exact bare path. Every other path on the domain (every
-# /new-courses/*, /terms, /test-series, ...) never touches this Worker at
-# all and flows straight to Vercel exactly as it does today.
+# HOW THE TWO HALVES SPLIT (this is the important part):
+#   [assets] below uploads the landing page's own files to Cloudflare's
+#   storage. A request matching one of those files is served directly from
+#   storage — worker.js is never invoked, no CPU, no request billed against
+#   the Workers quota. Only a request matching NO static file falls through
+#   to worker.js, which 301s it to courses.prepfusion.in. Confirmed against
+#   Cloudflare's docs: "a Worker script is only invoked when the requested
+#   route has not matched any static assets".
+#
+#   That's also why the quota isn't a concern here: the landing page itself
+#   (the overwhelming majority of traffic) costs zero Worker invocations.
+#   Only redirects of old store URLs count, and those decline over time as
+#   links update — exactly the traffic pattern this bridge is meant to serve.
+#
+# NOTE: this replaces the earlier homepage-only redirect. The routes list is
+# now a wildcard, because the whole point is catching every old store URL.
 
 name = "prepfusion-landing-apex"
 main = "worker.js"
 compatibility_date = "2024-09-23"
 
+# The landing page's files, uploaded to Cloudflare's own storage. "../" is
+# the repo root — see .assetsignore there for what's kept out of the upload.
+# Served directly and fast, never touching worker.js. Unmetered.
+[assets]
+directory = "../"
+binding = "ASSETS"
+
 # Explicit on purpose: Wrangler defaults this off once custom `routes` are
-# present, which silently dropped the workers.dev URL this whole apex change
-# has been tested through (isolated from the live domain) — a real deploy
-# hit this exact warning mid-troubleshooting. Keeping it on keeps that
-# always-available, zero-risk test URL: prepfusion-landing-apex.<your
-# account subdomain>.workers.dev.
+# present, which silently dropped the workers.dev URL this whole change has
+# been tested through (isolated from the live domain) — a real deploy hit
+# this exact warning mid-troubleshooting. Keeping it on keeps that
+# always-available, zero-risk test URL:
+# prepfusion-landing-apex.<account subdomain>.workers.dev
 workers_dev = true
 
+# Wildcard, deliberately: unlike the earlier homepage-only version, this
+# Worker is meant to see every path on the apex so it can redirect the old
+# store URLs. Static assets still bypass it (see above) — the wildcard is
+# about catching what ISN'T the landing page.
 routes = [
-  { pattern = "prepfusion.in/", zone_name = "prepfusion.in" }
+  { pattern = "prepfusion.in/*", zone_name = "prepfusion.in" }
 ]
