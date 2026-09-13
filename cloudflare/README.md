@@ -1,82 +1,63 @@
-# Domain swap: landing page onto prepfusion.in, store onto courses.prepfusion.in
+# prepfusion.in root → go.prepfusion.in
 
-This Worker is the **bridge** that makes the swap safe: it serves the landing page at
-`prepfusion.in`, and 301s every other path — all the old store URLs — to the same path on
-`courses.prepfusion.in`. Without it, every existing bookmark, shared WhatsApp link, backlink and
-Google result pointing at a course page would 404 the moment the domain changes.
+Only `prepfusion.in/` (the bare root, any query string) redirects to `https://go.prepfusion.in/`.
+Every other apex path (`/courses`, `/terms`, ...) and every subdomain behaves exactly as before.
 
-It is meant to be **temporary**. Once links and search results have had time to update (a few
-weeks is reasonable), the Worker can be deleted and the apex pointed straight at the landing page.
+## Why the earlier attempt "did nothing"
 
-## ⚠ Prerequisite — do NOT deploy before this is true
+The Aug 17 deploy of this same redirect (version `af95ada5`, route `prepfusion.in/`) is **live and
+correct**: `https://prepfusion-landing-apex.prepfusion-edu-gate.workers.dev/` returns the 301. But
+the apex DNS record is **DNS-only (grey cloud)**: `prepfusion.in` resolves to `76.76.21.21`
+(Vercel), and responses come back with `Server: Vercel` and no `CF-RAY`. Traffic never passes
+through Cloudflare, so no Worker route, Redirect Rule or Page Rule can fire. The code isn't the
+problem. The missing step is putting Cloudflare in the path.
 
-**`courses.prepfusion.in` must already be live, serving the store, with the same URL structure.**
+## The one real risk: proxying Vercel
 
-This is not a DNS-only step. Vercel will not serve a hostname that its project hasn't been
-configured to accept, so **Appx has to add `courses.prepfusion.in` as a domain on their Vercel
-project** — pointing DNS at Vercel without that gets a Vercel error page, not the store.
+Turning the apex record orange puts Cloudflare in front of Vercel for **every** apex path, not just
+`/`. If the zone's SSL/TLS mode is **Flexible**, Cloudflare talks to Vercel over HTTP, Vercel 308s to
+HTTPS, and every apex page turns into `ERR_TOO_MANY_REDIRECTS`. **SSL/TLS mode must be Full (strict)
+before proxying.** Also check the zone for anything that would alter proxied traffic: Rocket Loader,
+Bot Fight Mode, cache rules or Page Rules that match `prepfusion.in/*`.
 
-Verify before touching anything here:
+## Activation (owner approval required)
 
-```bash
-curl -sI https://courses.prepfusion.in/new-courses?examId=6
-curl -s https://courses.prepfusion.in/terms | head -c 300
-```
+1. Dashboard → prepfusion.in → SSL/TLS → Overview: confirm **Full (strict)**.
+2. Test the new code on its version preview URL, without deploying it:
+   `cd cloudflare && npx wrangler versions upload` (prints a preview URL; `/` should 302 and
+   `/courses` should 404).
+3. Deploy the Worker (route stays `prepfusion.in/`): `cd cloudflare && npx wrangler deploy`.
+4. DNS → the `prepfusion.in` A record (`76.76.21.21`) → switch to **Proxied** (orange).
+   Leave `www` alone: it is a CNAME to the apex, and `https://www.prepfusion.in` already fails
+   today because Vercel has no certificate for it.
+5. Run the checklist below immediately.
 
-Both must return the real store — not a Vercel 404, not an error page. If they don't, stop:
-deploying this bridge now would redirect every old store URL to a dead domain, which is worse
-than leaving things alone, because it breaks the whole catalogue instead of one page.
+## Rollback
 
-## How the two halves split
+- Fastest and complete: set the apex A record back to **DNS-only** (grey). Cloudflare leaves the
+  path and everything is exactly as today. DNS TTL applies, so it can take a few minutes.
+- To keep the proxy but drop the redirect, remove the `prepfusion.in/` route in Workers → Routes.
 
-`wrangler.toml`'s `[assets]` uploads the landing page's files to Cloudflare's storage. A request
-matching one of those files is served **directly from storage — `worker.js` is never invoked**,
-no CPU used, nothing billed against the Workers request quota. Only a request matching **no**
-static file falls through to `worker.js`, which 301s it to `courses.prepfusion.in`.
-
-That's also why the Free plan's 100,000 requests/day isn't a concern: the landing page itself —
-the overwhelming majority of traffic — costs zero Worker invocations. Only redirects of old store
-URLs count, and that number *declines over time* as links and indexes update. Exactly the traffic
-shape a temporary bridge should have.
-
-## Deploy
-
-```bash
-cd cloudflare
-npx wrangler deploy
-```
-
-Then test on the isolated `workers.dev` URL **before** touching live DNS —
-`prepfusion-landing-apex.<account subdomain>.workers.dev`. Confirm both halves:
-
-- `/` and `/styles.css` serve the landing page's own content
-- `/terms` and `/new-courses?examId=6` return a 301 to the matching `courses.prepfusion.in` URL
-
-## Going live
-
-Point the apex `A`/`CNAME` record for `prepfusion.in` at this Worker and set it **Proxied**
-(orange cloud) — a Worker route only fires for traffic Cloudflare is actually proxying.
-
-**Rollback** is the same toggle: set the record back to DNS-only (grey) and the apex goes back to
-whatever the record points at directly, with the Worker completely out of the path.
-
-## Verify after going live
+## Verify after activation
 
 ```bash
-curl -sI https://prepfusion.in/                      # 200, the landing page
-curl -sI https://prepfusion.in/terms                 # 301 -> courses.prepfusion.in/terms
-curl -sI "https://prepfusion.in/new-courses?examId=6" # 301, query string preserved
+curl -sI https://prepfusion.in/                     # 302 → https://go.prepfusion.in/
+curl -sI "https://prepfusion.in/?utm_source=t"      # 302 → https://go.prepfusion.in/?utm_source=t
+curl -sI http://prepfusion.in/                      # redirect to https, then 302
+curl -sI https://prepfusion.in/courses              # 200, Server: cloudflare, from Vercel (X-Powered-By: Next.js)
+curl -sI https://prepfusion.in/some-random-path     # 404 from Vercel, same as today
+curl -sI http://prepfusion.in/courses               # 30x → https://prepfusion.in/courses, NOT a loop
+curl -sI https://go.prepfusion.in/                  # 200
+curl -sI https://notes.prepfusion.in/               # 302 → hub.prepfusion.in/notes
+curl -sI https://hub.prepfusion.in/                 # 200
+curl -sI https://store.prepfusion.in/               # 200
+curl -sI https://pyq.prepfusion.in/                 # 200
 ```
 
-Then load `https://prepfusion.in/` in a real browser and click through to a course — the whole
-path from landing page to store checkout should work end to end.
+Also click through a real browser: log in, open a course, and start a checkout on `prepfusion.in`.
+Once everything has passed for a few days, change `REDIRECT_STATUS` to `301` in `worker.js` and
+redeploy.
 
-## Known limits / what this does not fix
+## Tests
 
-- **The mobile apps.** If the Android/iOS/desktop apps hardcode `prepfusion.in` anywhere, this
-  bridge does not reach them — installed apps don't consult it. Only Appx can confirm and fix
-  that, and app-store review means a fix isn't fast. Check before swapping, not after.
-- **Payment gateway + API config.** Webhook URLs, redirect URLs and CORS allowed-origins
-  registered against `prepfusion.in` are Appx-side configuration. A redirect does not update them.
-- **SEO.** 301s pass most ranking value, but a domain move still typically costs some search
-  traffic temporarily while Google re-indexes.
+`node --test cloudflare/worker.test.mjs`
