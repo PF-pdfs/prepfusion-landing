@@ -1,31 +1,46 @@
 /*
- * The fallback half of the domain-swap bridge. See wrangler.toml for the
- * full picture and why the split matters.
+ * Redirects the bare root of prepfusion.in to go.prepfusion.in. Nothing else.
  *
- * This code only ever runs for a request that matched NO static asset —
- * i.e. not the landing page, not its CSS/JS/images. In practice that means
- * the old store URLs (/new-courses/..., /terms, /test-series, ...) that
- * still point at this domain from bookmarks, shared links, search results
- * and backlinks. Each one gets a permanent redirect to the same path on
- * courses.prepfusion.in, so nothing that used to work starts 404ing.
+ * The primary guarantee is the route in wrangler.toml: `prepfusion.in/`
+ * (no wildcard) matches ONLY the exact root path, so /courses, /terms,
+ * /new-courses?examId=6, ... never invoke this Worker and go straight to
+ * Vercel exactly as today. Subdomains are never matched either.
  *
- * Path AND query string are both preserved: /new-courses?examId=6 has to
- * land on /new-courses?examId=6, not a bare /new-courses, or the visitor
- * ends up somewhere real but wrong — worse than an error, because it looks
- * deliberate.
+ * The code below is a second, independent guard in case the route is ever
+ * widened by mistake: anything that isn't the bare root on the apex is
+ * passed through to the origin untouched with fetch(request). (A subrequest
+ * from a route-matched Worker to its own zone goes to the origin, not back
+ * into this Worker, so there is no loop.)
  *
- * 301 (permanent) rather than 302: this tells search engines to move their
- * index to the new URL, which is the entire point of running this bridge.
- * The tradeoff is that browsers cache 301s aggressively — if the store's
- * domain ever changes again, expect returning visitors to keep hitting the
- * cached redirect for a while.
+ * 302 (temporary) on purpose until the redirect is verified live: browsers
+ * cache 301s hard, and a mistaken 301 keeps sending returning visitors to
+ * the wrong place long after it's rolled back. Flip REDIRECT_STATUS to 301
+ * only once everything in cloudflare/README.md's checklist passes.
+ *
+ * The query string is kept so campaign links (/?utm_source=...) land on
+ * go.prepfusion.in with their tracking parameters intact.
  */
 
-const STORE_ORIGIN = 'https://courses.prepfusion.in';
+export const TARGET = 'https://go.prepfusion.in/';
+export const REDIRECT_STATUS = 302;
+const APEX = 'prepfusion.in';
 
 export default {
   async fetch(request) {
     const url = new URL(request.url);
-    return Response.redirect(STORE_ORIGIN + url.pathname + url.search, 301);
+
+    if (url.pathname === '/') {
+      return Response.redirect(TARGET + url.search, REDIRECT_STATUS);
+    }
+
+    // Safety net: not the bare root. On the apex, hand the request to the
+    // origin exactly as if this Worker weren't there.
+    if (url.hostname === APEX) {
+      return fetch(request);
+    }
+
+    // workers.dev / preview URLs: there's no origin behind them to pass to,
+    // and fetch(request) would just call this Worker again.
+    return new Response('Not found', { status: 404 });
   }
 };
