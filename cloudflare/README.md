@@ -3,6 +3,22 @@
 Only `prepfusion.in/` (the bare root, any query string) redirects to `https://go.prepfusion.in/`.
 Every other apex path (`/courses`, `/terms`, ...) and every subdomain behaves exactly as before.
 
+> [!WARNING]
+> **Do NOT switch the `prepfusion.in` A record to Proxied.** Tried on 2026-09-13 and rolled back
+> ([issue #3](https://github.com/PF-pdfs/prepfusion-landing/issues/3)). The redirect itself worked, but
+> the apex is ClassX's course site on Vercel, and ClassX picks the price **currency from the
+> visitor's IP**. Behind Cloudflare, every visitor reaches Vercel from a Cloudflare server
+> (`x-vercel-id` went from `bom1::bom1` to `sin1::bom1`), so Indian students were shown **SGD
+> prices**. It went back to INR as soon as the record was DNS-only again. The same thing happened
+> in an earlier attempt.
+>
+> The proxy is all-or-nothing per hostname, Workers and Redirect Rules only run on proxied traffic,
+> and ClassX have declined to add the root redirect themselves. So there is currently **no safe
+> way** to redirect only the root. The Worker below stays deployed but inert (it never runs while
+> the record is DNS-only). Only revisit this if ClassX start geolocating by Cloudflare's
+> `CF-IPCountry` header or add the redirect on their side, and re-test pricing on
+> `/new-courses?examId=6` from India before and after.
+
 ## Why the earlier attempt "did nothing"
 
 The Aug 17 deploy of this same redirect (version `af95ada5`, route `prepfusion.in/`) is **live and
@@ -20,7 +36,10 @@ HTTPS, and every apex page turns into `ERR_TOO_MANY_REDIRECTS`. **SSL/TLS mode m
 before proxying.** Also check the zone for anything that would alter proxied traffic: Rocket Loader,
 Bot Fight Mode, cache rules or Page Rules that match `prepfusion.in/*`.
 
-## Activation (owner approval required)
+## Activation (owner approval required) (BLOCKED, see the warning at the top)
+
+Don't follow these steps as things stand: step 4 is what caused the SGD pricing. They are kept for
+if the ClassX side ever changes.
 
 1. Dashboard → prepfusion.in → SSL/TLS → Overview: confirm **Full (strict)**.
 2. Test the new code on its version preview URL, without deploying it:
