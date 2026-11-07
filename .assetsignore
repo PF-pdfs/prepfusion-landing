@@ -1,9 +1,26 @@
-# Excludes these from the Cloudflare Worker's static-assets upload
-# (cloudflare/wrangler.toml's [assets] directory = "../", the repo root).
-# GitHub-Pages-specific files and the Worker's own source have no reason to
-# be uploaded as servable "assets" of the Worker itself.
+# Files Wrangler must NOT upload as servable static assets when deploying the
+# prepfusion-landing-site Worker (wrangler.toml at the repo root, whose
+# [assets] directory is the repo root itself). Everything else in the repo is
+# the website. GitHub Pages ignores this file.
+
+# Version control and local state
 .git
-cloudflare
+.gitignore
+.wrangler
+node_modules
+
+# GitHub Pages-only files
 .nojekyll
 CNAME
+
+# Worker sources and config (the apex redirect Worker and this one)
+cloudflare
+hosting
+wrangler.toml
 .assetsignore
+
+# Tooling, docs and design skills: not part of the site
+tools
+docs
+.claude
+.github
