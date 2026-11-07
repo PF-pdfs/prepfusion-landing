@@ -89,6 +89,22 @@
     doc.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !menu.hidden) setMenu(false, true); });
   }
 
+  /* ---------------- branch picker <-> URL ----------------
+     The picker itself is radios and CSS. This only makes the choice
+     shareable: ?paper=ee opens on EE (the Hub or the Store can link
+     straight to a branch), and picking one updates the address. */
+  var radios = doc.querySelectorAll('input[name="branch"]');
+  var wanted = (new URLSearchParams(location.search).get('paper') || '').toLowerCase();
+  radios.forEach(function (r) {
+    if (r.value === wanted) r.checked = true;
+    r.addEventListener('change', function () {
+      if (!r.checked || !history.replaceState) return;
+      var q = new URLSearchParams(location.search);
+      q.set('paper', r.value);
+      history.replaceState(null, '', location.pathname + '?' + q.toString() + location.hash);
+    });
+  });
+
   /* ---------------- floating WhatsApp: only once the hero is passed ---------------- */
   var wa = doc.querySelector('.wa-float');
   var hero = doc.querySelector('.hero');

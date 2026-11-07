@@ -171,7 +171,7 @@ main:focus { outline: none; }
 .head-in { position: relative; max-width: var(--wrap); margin: 0 auto; padding: 10px var(--gutter); min-height: 64px; display: flex; align-items: center; gap: 10px; }
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; margin-right: auto; }
 .brand-hub { display: flex; align-items: center; gap: 9px; min-height: 44px; color: inherit; text-decoration: none; min-width: 0; }
-.brand-logo { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; display: block; flex-shrink: 0; border: 1px solid var(--line-strong); }
+.brand-logo { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; display: block; flex-shrink: 0; border: 1px solid var(--line-strong); background: var(--photo-bg); }
 .brand-text { font: 600 17px/1 var(--display); letter-spacing: -.01em; white-space: nowrap; }
 .brand-text b { font-weight: 800; color: var(--wordmark); }
 .brand-sep { font: 600 14px/1 var(--sans); color: var(--ink-soft); border-left: 1px solid var(--line-strong); padding: 3px 0 3px 10px; white-space: nowrap; }
@@ -417,7 +417,7 @@ main:focus { outline: none; }
 .faq .a { padding: 0 0 18px; color: var(--ink-soft); max-width: 62ch; }
 .faq .a p { margin: 0 0 10px; }
 .trans { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 14px; }
-.trans h4 { font: 600 15px/1.3 var(--sans); color: var(--ink); letter-spacing: 0; margin: 0 0 6px; }
+.trans-h { font: 600 15px/1.3 var(--sans); color: var(--ink); letter-spacing: 0; margin: 0 0 6px; }
 .ticks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14.5px; }
 .ticks li { position: relative; padding-left: 22px; }
 .ticks li::before { content: ''; position: absolute; left: 2px; top: .5em; width: 10px; height: 5px; border-left: 2px solid var(--ok); border-bottom: 2px solid var(--ok); transform: rotate(-45deg); }
