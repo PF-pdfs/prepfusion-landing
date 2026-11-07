@@ -1,278 +1,159 @@
+/* PrepFusion Courses. Loaded with `defer`; nothing here is needed to read the
+   first screen (the hero is plain HTML and CSS, the branch picker is radio
+   inputs). Work that only matters further down waits for idle time. */
 (function () {
   'use strict';
 
-  /* ---------------- theme toggle, persisted ----------------
-     Dark by default (see the blocking inline script in index.html's <head>,
-     which already set data-theme before this file even loaded — this just
-     wires up the button to flip it). */
+  var doc = document;
+  var root = doc.documentElement;
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function $(id) { return doc.getElementById(id); }
+
+  /* ---------------- course platform origin ----------------
+     COURSES_ORIGIN is where every course, policy and banner link points.
+     Today the course platform (ClassX) is prepfusion.in itself. When this
+     page takes the apex, ClassX moves to its own hostname: under Cloudflare
+     that is the Worker's COURSES_ORIGIN variable, which rewrites the links
+     in the HTML and hands the value to this script through
+     <meta name="pf-courses-origin">. On GitHub Pages (no Worker) this
+     constant is the setting. The HTML carries the default links, so they
+     work with JavaScript off too. See docs/domain-switch.md. */
+  var DEFAULT_COURSES_ORIGIN = 'https://prepfusion.in';
+  var COURSES_ORIGIN = DEFAULT_COURSES_ORIGIN;
+  var originMeta = doc.querySelector('meta[name="pf-courses-origin"]');
+  if (originMeta && /^https?:\/\/[^/]+$/.test(originMeta.content)) COURSES_ORIGIN = originMeta.content;
+
+  function courseUrl(url) {
+    if (!url || COURSES_ORIGIN === DEFAULT_COURSES_ORIGIN) return url;
+    return url.indexOf(DEFAULT_COURSES_ORIGIN + '/') === 0 || url === DEFAULT_COURSES_ORIGIN
+      ? COURSES_ORIGIN + url.slice(DEFAULT_COURSES_ORIGIN.length)
+      : url;
+  }
+  if (COURSES_ORIGIN !== DEFAULT_COURSES_ORIGIN) {
+    doc.querySelectorAll('a[data-course]').forEach(function (a) {
+      a.setAttribute('href', courseUrl(a.getAttribute('href')));
+    });
+  }
+
+  /* ---------------- theme ----------------
+     Same contract as the Hub and the Store: dark unless the student chose
+     light, remembered as pf-theme. localStorage is per subdomain, so the
+     choice is ALSO written to a cookie on .prepfusion.in, which every
+     PrepFusion site can read. The inline script in <head> applies it before
+     first paint; this only wires the buttons and keeps both stores and
+     <meta name="theme-color"> in step. */
   var THEME_KEY = 'pf-theme';
-  var themeBtn = document.getElementById('theme-toggle');
-  if (themeBtn) {
-    themeBtn.addEventListener('click', function () {
-      var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-      var next = isDark ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      try { localStorage.setItem(THEME_KEY, next); } catch (err) { /* storage blocked, theme still applies this visit */ }
-    });
+  function isLight() { return root.getAttribute('data-theme') === 'light'; }
+  function writeThemeCookie(t) {
+    var host = location.hostname;
+    var domain = /(^|\.)prepfusion\.in$/.test(host) ? '; Domain=.prepfusion.in' : '';
+    var secure = location.protocol === 'https:' ? '; Secure' : '';
+    try { doc.cookie = THEME_KEY + '=' + t + domain + '; Path=/; Max-Age=31536000; SameSite=Lax' + secure; } catch (e) {}
+  }
+  function syncTheme() {
+    var light = isLight();
+    var meta = doc.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', getComputedStyle(root).getPropertyValue('--paper').trim() || (light ? '#f2f5fa' : '#0a1020'));
+    doc.querySelectorAll('[data-themebtn]').forEach(function (b) { b.setAttribute('aria-pressed', String(light)); });
+  }
+  function setTheme(t) {
+    if (t === 'light') root.setAttribute('data-theme', 'light');
+    else root.removeAttribute('data-theme');
+    try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+    writeThemeCookie(t);
+    syncTheme();
+  }
+  doc.querySelectorAll('[data-themebtn]').forEach(function (b) {
+    b.addEventListener('click', function () { setTheme(isLight() ? 'dark' : 'light'); });
+  });
+  syncTheme();
+  /* A choice made here before the cookie existed lives only in
+     localStorage: copy it to the cookie once so the other sites see it. */
+  if (!/(?:^|;\s*)pf-theme=/.test(doc.cookie)) {
+    try { var saved = localStorage.getItem(THEME_KEY); if (saved === 'light' || saved === 'dark') writeThemeCookie(saved); } catch (e) {}
   }
 
-  /* ---------------- hero: second-order step response ----------------
-     y(t) = 1 - e^(-ζωt)(cos ωd t + ζ/√(1-ζ²) sin ωd t) — an underdamped
-     system overshooting once and settling. Control Systems is a course
-     they sell; it is also the shape of a rank converging on its target. */
-  var cv = document.getElementById('trace');
-  if (cv) {
-    var ctx = cv.getContext('2d');
-    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var prog = reduce ? 1 : 0;
-
-    function resize() {
-      var r = cv.getBoundingClientRect();
-      var d = window.devicePixelRatio || 1;
-      cv.width = Math.max(1, r.width * d);
-      cv.height = Math.max(1, r.height * d);
-      ctx.setTransform(d, 0, 0, d, 0, 0);
-      draw();
-    }
-
-    function yAt(t) {
-      var z = 0.26, w = 2.5;
-      var wd = w * Math.sqrt(1 - z * z);
-      return 1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + (z / Math.sqrt(1 - z * z)) * Math.sin(wd * t));
-    }
-
-    function draw() {
-      var r = cv.getBoundingClientRect();
-      var W = r.width, H = r.height;
-      if (!W || !H) return;
-      ctx.clearRect(0, 0, W, H);
-
-      var base = H * 0.86, amp = H * 0.42, T = 9;
-
-      /* faint engineering grid */
-      ctx.strokeStyle = 'rgba(157,182,255,0.055)';
-      ctx.lineWidth = 1;
-      for (var gx = 0; gx <= W; gx += 62) {
-        ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
-      }
-      for (var gy = base; gy > 0; gy -= 62) {
-        ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
-      }
-
-      /* steady-state target line */
-      ctx.strokeStyle = 'rgba(255,207,45,0.22)';
-      ctx.setLineDash([5, 7]);
-      ctx.beginPath(); ctx.moveTo(0, base - amp); ctx.lineTo(W, base - amp); ctx.stroke();
-      ctx.setLineDash([]);
-
-      /* the response */
-      var pts = [], i, t, x, y;
-      var n = Math.floor(240 * prog);
-      for (i = 0; i <= n; i++) {
-        t = (i / 240) * T;
-        x = (i / 240) * W;
-        y = base - yAt(t) * amp;
-        pts.push([x, y]);
-      }
-      if (pts.length > 1) {
-        var g = ctx.createLinearGradient(0, 0, W, 0);
-        g.addColorStop(0, 'rgba(77,146,255,0.5)');
-        g.addColorStop(0.55, 'rgba(255,207,45,0.85)');
-        g.addColorStop(1, 'rgba(255,207,45,0.5)');
-
-        /* soft fill under the curve */
-        ctx.beginPath();
-        ctx.moveTo(pts[0][0], base);
-        for (i = 0; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
-        ctx.lineTo(pts[pts.length - 1][0], base);
-        ctx.closePath();
-        var fg = ctx.createLinearGradient(0, base - amp, 0, base);
-        fg.addColorStop(0, 'rgba(255,207,45,0.10)');
-        fg.addColorStop(1, 'rgba(255,207,45,0)');
-        ctx.fillStyle = fg;
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.moveTo(pts[0][0], pts[0][1]);
-        for (i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
-        ctx.strokeStyle = g;
-        ctx.lineWidth = 2.2;
-        ctx.lineJoin = 'round';
-        ctx.stroke();
-
-        /* leading dot */
-        var last = pts[pts.length - 1];
-        ctx.beginPath();
-        ctx.arc(last[0], last[1], 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffcf2d';
-        ctx.shadowColor = 'rgba(255,207,45,0.85)';
-        ctx.shadowBlur = 14;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
-    }
-
-    function tick() {
-      if (prog < 1) { prog = Math.min(1, prog + 0.012); draw(); requestAnimationFrame(tick); }
-    }
-
-    window.addEventListener('resize', resize);
-    resize();
-    if (!reduce) requestAnimationFrame(tick);
+  /* ---------------- phone menu ---------------- */
+  var menuBtn = $('menubtn');
+  var menu = $('hmenu');
+  function setMenu(open, focusBack) {
+    menu.hidden = !open;
+    menuBtn.setAttribute('aria-expanded', String(open));
+    if (open) { var first = menu.querySelector('a,button'); if (first) first.focus(); }
+    else if (focusBack) menuBtn.focus();
+  }
+  if (menuBtn && menu) {
+    menuBtn.addEventListener('click', function (e) { e.stopPropagation(); setMenu(menu.hidden); });
+    menu.addEventListener('click', function (e) { if (e.target.closest('a')) setMenu(false); });
+    doc.addEventListener('click', function (e) { if (!menu.hidden && !menu.contains(e.target)) setMenu(false); });
+    doc.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !menu.hidden) setMenu(false, true); });
   }
 
-  /* ---------------- course links ----------------
-     Once this ships at the literal prepfusion.in root (via the Cloudflare
-     reverse-proxy plan — only "/" is intercepted, every other path still
-     goes to the vendor untouched), these ARE same-site navigations: same
-     domain, same tab, exactly like clicking any other in-site link. These
-     are REAL hrefs today too — click one and it actually opens the course
-     page, so the flow can be tested end to end right now. */
-  var EXT_LINKS = {
-    'free': 'https://prepfusion.in/zero-price-courses',
-    'gate': 'https://prepfusion.in/new-courses?examId=6',
-    'gate-full': 'https://prepfusion.in/new-courses?examId=6',
-    'subjectwise': 'https://prepfusion.in/new-courses?examId=4',
-    'combo': 'https://prepfusion.in/new-courses?examId=5',
-    'placement': 'https://prepfusion.in/new-courses?examId=7',
-    'test': 'https://prepfusion.in/test-series'
-  };
-  document.querySelectorAll('[data-external]').forEach(function (a) {
-    var key = a.getAttribute('data-external');
-    var url = EXT_LINKS[key] || 'https://prepfusion.in/';
-    a.setAttribute('href', url);
+  /* ---------------- floating WhatsApp: only once the hero is passed ---------------- */
+  var wa = doc.querySelector('.wa-float');
+  var hero = doc.querySelector('.hero');
+  if (wa && hero && 'IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      wa.classList.toggle('show', !entries[0].isIntersecting);
+    }).observe(hero);
+  } else if (wa) wa.classList.add('show');
+
+  /* ---------------- mentors: years teaching, computed ---------------- */
+  doc.querySelectorAll('[data-teaching-since]').forEach(function (el) {
+    var since = new Date(el.getAttribute('data-teaching-since'));
+    var now = new Date();
+    var years = now.getFullYear() - since.getFullYear() -
+      ((now.getMonth() < since.getMonth() || (now.getMonth() === since.getMonth() && now.getDate() < since.getDate())) ? 1 : 0);
+    years = Math.max(1, years);
+    el.textContent = years + '+ years ' + (el.getAttribute('data-teaching-label') || 'teaching');
   });
 
-  var INFO_TIP = 'Course pages are still powered by a separate system behind the scenes while the two are being unified. ' +
-    'You may need a separate account there for now — using the same email is a good idea, so we can link them later.';
-
-  function placeTip(ic, tip) {
-    var r = ic.getBoundingClientRect();
-    tip.style.left = '0px'; tip.style.top = '0px'; /* reset so its own width isn't measured mid-clamp */
-    var tw = tip.offsetWidth;
-    var left = r.left + r.width / 2 - tw / 2;
-    left = Math.max(12, Math.min(left, window.innerWidth - tw - 12));
-    var above = r.top - tip.offsetHeight - 10;
-    var top = above > 8 ? above : r.bottom + 10; /* flip below if there's no room above */
-    tip.style.left = left + 'px';
-    tip.style.top = top + 'px';
+  /* ---------------- images below the fold fade in ---------------- */
+  function fadeIn(img) {
+    img.classList.add('fade-img');
+    if (img.complete && img.naturalWidth) { img.classList.add('is-in'); return; }
+    img.addEventListener('load', function () { img.classList.add('is-in'); }, { once: true });
   }
+  doc.querySelectorAll('.stack img').forEach(fadeIn);
 
-  document.querySelectorAll('.info-ic').forEach(function (ic) {
-    var tip = document.createElement('span');
-    tip.className = 'tip';
-    tip.setAttribute('role', 'tooltip');
-    tip.textContent = INFO_TIP;
-    ic.appendChild(tip);
-    ic.setAttribute('tabindex', '0');
-
-    function show() { placeTip(ic, tip); tip.classList.add('show'); }
-    function hide() { tip.classList.remove('show'); }
-
-    ic.addEventListener('mouseenter', show);
-    ic.addEventListener('mouseleave', hide);
-    ic.addEventListener('focus', show);
-    ic.addEventListener('blur', hide);
-    // Tap-to-toggle for touch, where hover/focus don't reliably fire at all.
-    ic.addEventListener('click', function (e) {
-      e.stopPropagation();
-      tip.classList.contains('show') ? hide() : show();
+  /* ---------------- dialogs ----------------
+     Native <dialog> + showModal(): focus moves in, the page behind is
+     inert, Esc closes (the "cancel" event). We add the focus return to
+     whatever opened it, and close on a click on the backdrop. */
+  function openDialog(dlg, opener) {
+    dlg._opener = opener || doc.activeElement;
+    if (typeof dlg.showModal === 'function') dlg.showModal();
+    else dlg.setAttribute('open', '');
+    var x = dlg.querySelector('[data-close]');
+    if (x) x.focus();
+  }
+  function wireDialog(dlg, onClose) {
+    function done() {
+      if (onClose) onClose();
+      var o = dlg._opener;
+      dlg._opener = null;
+      if (o && o.focus && doc.contains(o)) o.focus();
+    }
+    dlg.addEventListener('close', done);
+    dlg.querySelectorAll('[data-close]').forEach(function (b) {
+      b.addEventListener('click', function () { if (dlg.close) dlg.close(); else { dlg.removeAttribute('open'); done(); } });
     });
-  });
-  document.addEventListener('click', function () {
-    document.querySelectorAll('.info-ic .tip.show').forEach(function (t) { t.classList.remove('show'); });
-  });
-
-  /* ---------------- header nav: "More" dropdown + mobile drawer ---------------- */
-  var moreBtn = document.getElementById('more-btn');
-  var morePanel = document.getElementById('more-panel');
-  if (moreBtn && morePanel) {
-    moreBtn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      var opening = !morePanel.classList.contains('on');
-      if (opening) {
-        var r = moreBtn.getBoundingClientRect();
-        morePanel.style.top = (r.bottom + 8) + 'px';
-        morePanel.style.left = 'auto';
-        morePanel.style.right = (window.innerWidth - r.right) + 'px';
-      }
-      morePanel.classList.toggle('on', opening);
-      moreBtn.setAttribute('aria-expanded', opening ? 'true' : 'false');
-    });
-    document.addEventListener('click', function (e) {
-      if (!morePanel.contains(e.target) && e.target !== moreBtn) {
-        morePanel.classList.remove('on');
-        moreBtn.setAttribute('aria-expanded', 'false');
-      }
+    dlg.addEventListener('click', function (e) {
+      if (e.target !== dlg) return;
+      var r = dlg.getBoundingClientRect();
+      var inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+      if (!inside) dlg.close();
     });
   }
 
-  /* ---------------- mobile drawer ----------------
-     Slides in from the left over a scrim. The scrim is created here rather
-     than sitting in the markup because it exists only to serve this drawer,
-     and having one owner for both halves keeps them from drifting apart. */
-  var burgerBtn = document.getElementById('burger-btn');
-  var mobileNav = document.getElementById('mobile-nav');
-  var navScrim = null;
-  function setDrawer(open) {
-    if (!mobileNav) return;
-    mobileNav.classList.toggle('on', open);
-    if (navScrim) navScrim.classList.toggle('on', open);
-    if (burgerBtn) burgerBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    /* stop the page behind scrolling under the drawer */
-    document.body.style.overflow = open ? 'hidden' : '';
-  }
-  if (burgerBtn && mobileNav) {
-    navScrim = document.createElement('div');
-    navScrim.className = 'nav-scrim';
-    navScrim.setAttribute('aria-hidden', 'true');
-    mobileNav.parentNode.insertBefore(navScrim, mobileNav);
-    navScrim.addEventListener('click', function () { setDrawer(false); });
-
-    burgerBtn.addEventListener('click', function () {
-      setDrawer(!mobileNav.classList.contains('on'));
-    });
-    /* the burger sits underneath the open drawer, so the drawer needs its own
-       close control — see .mobile-nav-head */
-    var navCloseBtn = document.getElementById('mobile-nav-close');
-    if (navCloseBtn) navCloseBtn.addEventListener('click', function () { setDrawer(false); });
-    mobileNav.querySelectorAll('a').forEach(function (a) {
-      a.addEventListener('click', function () { setDrawer(false); });
-    });
-  }
-  document.addEventListener('keydown', function (e) {
-    if (e.key !== 'Escape') return;
-    if (morePanel) { morePanel.classList.remove('on'); moreBtn.setAttribute('aria-expanded', 'false'); }
-    setDrawer(false);
-  });
-
-  /* The fixed header is transparent over the hero artwork; past the hero it
-     needs a solid background or the links sit on top of page content. */
-  var siteBar = document.getElementById('site-bar');
-  if (siteBar) {
-    var onScroll = function () {
-      siteBar.classList.toggle('is-stuck', window.scrollY > 12);
-    };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-  }
-
-  /* ---------------- rankers' interview panel overlay ----------------
-     Same "stay on our site" pattern as the header YouTube overlay (Feature 1):
-     opens in place over the page rather than sending students away.
-
-     YouTube's own playlist-embed sidebar turned out to be the actual bug
-     students hit — it's collapsed behind a small, easy-to-miss icon, so
-     "watch the panel" looked like it only ever played one video. Fixed by
-     not relying on it at all: this is our own visible, clickable strip
-     driving single-video embeds instead. The 39 entries below are a
-     snapshot of the real playlist (id + a label built from each video's
-     own title) pulled via YouTube's public playlist page — there's no
-     API-key sync for this one-off list, so if the playlist grows this
-     array needs a manual refresh. */
+  /* ---------------- rankers' interviews ----------------
+     A snapshot of the real playlist (id + a label from each video's title).
+     There's no API sync: if the playlist grows, refresh this list by hand.
+     The YouTube player is a click-to-load facade: no YouTube script loads
+     until a student presses play or picks an interview. */
   var RANKERS_VIDEOS = [
     { id: 'VckH84A3QPg', label: 'AIR 7 EC' },
-    { id: 'MhQNH1HAS_4', label: 'AIR 1 IN, AIR 4 EC — Raja Majhi' },
+    { id: 'MhQNH1HAS_4', label: 'AIR 1 IN, AIR 4 EC (Raja Majhi)' },
     { id: '4jampvRkASk', label: 'AIR 9' },
     { id: '_g_tQujRN2g', label: 'AIR 22 EC' },
     { id: '6vkCPQS3c-c', label: 'AIR 42 EE' },
@@ -284,428 +165,277 @@
     { id: 'waWw-B9mqI0', label: 'AIR 28 IN' },
     { id: '6F1ZJbljYAY', label: 'AIR 116 EE' },
     { id: 'ocrsAm1kN4E', label: 'AIR 109 EE' },
-    { id: 'yP20gS_oHz8', label: 'AIR 31 ECE' },
-    { id: 'KMfx2a6QaBY', label: 'AIR 89 ECE' },
+    { id: 'yP20gS_oHz8', label: 'AIR 31 EC' },
+    { id: 'KMfx2a6QaBY', label: 'AIR 89 EC' },
     { id: 'AATqV5LaL24', label: 'AIR 154 EE' },
     { id: 'k4t4Wlf7IJo', label: 'AIR 159 EE' },
-    { id: 'JmxotSEeg-o', label: 'AIR 82 IN, AIR 423 ECE' },
-    { id: 'Z2E0ekjwC9A', label: 'AIR 319 ECE' },
-    { id: 'ZfMrFhJ1brc', label: 'AIR 75 ECE' },
-    { id: '1VdEbQqbGjo', label: 'AIR 61 ECE, AIR 68 IN' },
-    { id: '3Nms4yVhp_A', label: 'AIR 46 EC & AIR 41 IN' },
-    { id: 'xn8oNW0TiAk', label: 'AIR 101 ECE' },
-    { id: '-oK51Coauik', label: 'AIR 134 ECE' },
-    { id: '86P09ZUJPEY', label: 'AIR 203 ECE' },
+    { id: 'JmxotSEeg-o', label: 'AIR 82 IN, AIR 423 EC' },
+    { id: 'Z2E0ekjwC9A', label: 'AIR 319 EC' },
+    { id: 'ZfMrFhJ1brc', label: 'AIR 75 EC' },
+    { id: '1VdEbQqbGjo', label: 'AIR 61 EC, AIR 68 IN' },
+    { id: '3Nms4yVhp_A', label: 'AIR 46 EC, AIR 41 IN' },
+    { id: 'xn8oNW0TiAk', label: 'AIR 101 EC' },
+    { id: '-oK51Coauik', label: 'AIR 134 EC' },
+    { id: '86P09ZUJPEY', label: 'AIR 203 EC' },
     { id: 'bBsnfUnZmyg', label: 'AIR 246 EE' },
-    { id: 'sEuUcBzHS6U', label: 'AIR 281 ECE' },
+    { id: 'sEuUcBzHS6U', label: 'AIR 281 EC' },
     { id: 'Ny2QKdpABKo', label: 'AIR 288 EE' },
     { id: '1M8t0I-9oc8', label: 'AIR 178 EE' },
-    { id: 'dhbTAUyQLes', label: 'AIR 355 ECE' },
-    { id: 'QXSjnd6_acc', label: 'AIR 484 ECE' },
+    { id: 'dhbTAUyQLes', label: 'AIR 355 EC' },
+    { id: 'QXSjnd6_acc', label: 'AIR 484 EC' },
     { id: 'WpdA-XiFrtE', label: 'AIR 4 DA, AIR 34 EE' },
     { id: 'RdkubCXfZJ4', label: 'AIR 28 IN, AIR 204 EE' },
     { id: 'aB8-43RRkKc', label: 'AIR 26 IN, AIR 408 EE' },
     { id: 'avtLWUDtAM0', label: 'AIR 82 IN' },
     { id: 'NSBwJGoZ4dk', label: 'AIR 278 EE' },
-    { id: '5V095M1YvK8', label: 'AIR 484 ECE' },
-    { id: 'v9_ZqNpFj0k', label: 'AIR 37 ECE' },
+    { id: '5V095M1YvK8', label: 'AIR 484 EC' },
+    { id: 'v9_ZqNpFj0k', label: 'AIR 37 EC' },
     { id: 'dusPR_4yXOo', label: 'AIR 471 EE' }
   ];
+  var countEl = $('rankers-count');
+  if (countEl) countEl.textContent = RANKERS_VIDEOS.length;
 
-  var vidScrim = document.getElementById('vid-scrim');
-  var vidWrap = document.getElementById('vid-frame-wrap');
-  var rankersStrip = document.getElementById('rankers-strip');
-  var openRankersBtn = document.getElementById('open-rankers');
-  var openRankersArt = document.getElementById('open-rankers-art');
-  var vidCloseBtn = document.getElementById('vid-close');
-  var rankersIndex = 0;
+  var rDlg = $('rankers-dlg');
+  var player = $('player');
+  var strip = $('rankers-strip');
 
-  function playRankers(i) {
-    rankersIndex = i;
+  function ytThumb(id, size) { return 'https://i.ytimg.com/vi/' + id + '/' + (size || 'mqdefault') + '.jpg'; }
+  function markCurrent(i) {
+    strip.querySelectorAll('.strip-item').forEach(function (el, n) { el.setAttribute('aria-current', n === i ? 'true' : 'false'); });
+    var cur = strip.children[i];
+    if (cur) cur.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', inline: 'center', block: 'nearest' });
+  }
+  function playVideo(i) {
     var v = RANKERS_VIDEOS[i];
-    var iframe = document.createElement('iframe');
-    iframe.src = 'https://www.youtube-nocookie.com/embed/' + v.id + '?rel=0';
-    iframe.title = "Rankers' Interview — " + v.label;
-    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-    iframe.allowFullscreen = true;
-    vidWrap.innerHTML = '';
-    vidWrap.appendChild(iframe);
-    rankersStrip.querySelectorAll('.rankers-item').forEach(function (el, idx) {
-      el.setAttribute('aria-current', idx === i ? 'true' : 'false');
+    var f = doc.createElement('iframe');
+    f.src = 'https://www.youtube-nocookie.com/embed/' + v.id + '?rel=0&autoplay=1';
+    f.title = "Rankers' interview: " + v.label;
+    f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    f.referrerPolicy = 'strict-origin-when-cross-origin';
+    f.allowFullscreen = true;
+    player.textContent = '';
+    player.appendChild(f);
+    markCurrent(i);
+  }
+  function showFacade(i) {
+    var v = RANKERS_VIDEOS[i];
+    player.textContent = '';
+    var b = doc.createElement('button');
+    b.type = 'button';
+    b.className = 'facade';
+    b.setAttribute('aria-label', 'Play ' + v.label);
+    b.innerHTML = '<img src="' + ytThumb(v.id, 'hqdefault') + '" alt="" width="480" height="360" decoding="async" />' +
+      '<span class="playdot"><svg class="ic" aria-hidden="true"><use href="#b-play-btn"/></svg></span>' +
+      '<span class="facade-cap"></span>';
+    b.querySelector('.facade-cap').textContent = v.label;
+    b.addEventListener('click', function () { playVideo(i); });
+    player.appendChild(b);
+    markCurrent(i);
+  }
+  function buildStrip() {
+    if (strip.childElementCount) return;
+    RANKERS_VIDEOS.forEach(function (v, i) {
+      var b = doc.createElement('button');
+      b.type = 'button';
+      b.className = 'strip-item';
+      b.setAttribute('role', 'listitem');
+      b.setAttribute('aria-current', 'false');
+      b.innerHTML = '<span class="strip-thumb"><img src="' + ytThumb(v.id) + '" alt="" width="320" height="180" loading="lazy" decoding="async" /></span><span class="strip-label"></span>';
+      b.querySelector('.strip-label').textContent = v.label;
+      b.addEventListener('click', function () { playVideo(i); });
+      strip.appendChild(b);
     });
-    var current = rankersStrip.querySelector('[aria-current="true"]');
-    if (current) current.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+  if (rDlg) {
+    wireDialog(rDlg, function () { player.textContent = ''; /* unmount, so the video stops */ });
+    var openRankers = function (e) { buildStrip(); showFacade(0); openDialog(rDlg, e.currentTarget); };
+    var b1 = $('open-rankers'), b2 = $('open-rankers-art');
+    if (b1) b1.addEventListener('click', openRankers);
+    if (b2) b2.addEventListener('click', openRankers);
   }
 
-  function openRankers() {
-    if (!rankersStrip.childElementCount) {
-      RANKERS_VIDEOS.forEach(function (v, i) {
-        var b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'rankers-item';
-        b.setAttribute('aria-current', 'false');
-        b.innerHTML =
-          '<span class="rankers-thumb">' +
-            '<img src="https://i.ytimg.com/vi/' + v.id + '/mqdefault.jpg" alt="" loading="lazy" />' +
-            '<span class="rankers-play"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>' +
-          '</span>' +
-          '<span class="rankers-label">' + v.label + '</span>';
-        b.addEventListener('click', function () { playRankers(i); });
-        rankersStrip.appendChild(b);
-      });
-    }
-    playRankers(0);
-    vidScrim.classList.add('on');
-  }
-  function closeRankers() {
-    vidScrim.classList.remove('on');
-    vidWrap.innerHTML = ''; /* unmount so the video actually stops playing */
-  }
-  if (openRankersBtn) openRankersBtn.addEventListener('click', function (e) { e.preventDefault(); openRankers(); });
-  if (openRankersArt) openRankersArt.addEventListener('click', openRankers);
-  vidCloseBtn.addEventListener('click', closeRankers);
-  vidScrim.addEventListener('click', function (e) { if (e.target === vidScrim) closeRankers(); });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && vidScrim.classList.contains('on')) closeRankers();
-  });
-
-  /* ---------------- mentor teaching-years, computed live ---------------- */
-  document.querySelectorAll('[data-teaching-since]').forEach(function (el) {
-    var since = new Date(el.getAttribute('data-teaching-since'));
-    var now = new Date();
-    var years = now.getFullYear() - since.getFullYear() -
-      ((now.getMonth() < since.getMonth() || (now.getMonth() === since.getMonth() && now.getDate() < since.getDate())) ? 1 : 0);
-    years = Math.max(1, years);
-    var label = el.getAttribute('data-teaching-label') || 'years teaching';
-    el.innerHTML = '<b>' + years + '+</b>&nbsp;' + label;
-  });
-
-  /* ---------------- TITANS vs Pathfinders comparison ----------------
-     Feature list matches PrepFusion's own comparison chart. No prices —
-     the batches differ by support level, not by which is "more expensive". */
-  var TELEGRAM_IC = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#229ED9"/><path fill="#fff" d="m5.4 11.8 12.1-4.7c.6-.2 1 .1.8.9l-2.1 9.7c-.1.6-.5.7-1 .5l-2.9-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.4-4.9c.2-.2 0-.3-.3-.1l-6.7 4.2-2.9-.9c-.6-.2-.6-.6.1-.9Z"/></svg>';
-  var WHATSAPP_IC = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#25D366"/><path fill="#fff" d="M12.03 5.5a6.5 6.5 0 0 0-5.6 9.8L5.5 18.5l3.3-.9a6.5 6.5 0 1 0 3.23-12.1Zm3.8 9.2c-.16.45-.93.86-1.3.9-.33.05-.75.07-1.2-.08a10.6 10.6 0 0 1-1.06-.4c-1.86-.8-3.07-2.68-3.16-2.8-.1-.13-.76-1-.76-1.9s.48-1.35.65-1.53c.16-.18.36-.22.48-.22h.35c.11 0 .27-.04.42.32l.6 1.44c.05.13.08.27.02.43-.06.16-.1.25-.2.38l-.3.35c-.1.1-.2.2-.09.4.11.2.5.83 1.08 1.35.74.66 1.36.87 1.56.97.2.1.32.08.44-.05l.53-.62c.18-.22.34-.18.56-.1l1.35.64c.22.1.37.16.42.25.05.1.05.55-.11 1.0Z"/></svg>';
-  var CMP_ROWS = [
-    { f: 'Video Lectures', t: true, p: true },
-    { f: 'Lecture Notes (PDF)', t: true, p: true },
-    { f: 'Doubt Solving Support', tCell: WHATSAPP_IC + ' WhatsApp group', pCell: TELEGRAM_IC + ' Telegram group' },
-    { f: 'Assignments &amp; Solved PYQs', t: true, p: true },
-    { f: '1:1 Mentorship <span style="opacity:.65;font-weight:400">(bi-weekly live session)</span>', t: true, p: false },
-    { f: 'VLSI Placement Course', t: true, p: false },
-    { f: 'Post-GATE Guidance', t: true, p: false },
-    { f: 'Test Series', t: true, p: false }
-  ];
-  var cmpBody = document.getElementById('cmp-body');
-  if (cmpBody) {
-    var yes = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
-    var no = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
-    CMP_ROWS.forEach(function (r) {
-      var tr = document.createElement('tr');
-      var tCellHtml = r.tCell ? '<span class="cmp-chip">' + r.tCell + '</span>' : yes;
-      var pCellHtml = r.pCell ? '<span class="cmp-chip">' + r.pCell + '</span>' : (r.p ? yes : no);
-      var tClass = r.tCell ? '' : (r.t ? 'yes' : 'no');
-      var pClass = r.pCell ? '' : (r.p ? 'yes' : 'no');
-      tr.innerHTML =
-        '<th scope="row">' + r.f + '</th>' +
-        '<td class="hotcol ' + tClass + '">' + tCellHtml + '</td>' +
-        '<td class="' + pClass + '">' + pCellHtml + '</td>';
-      cmpBody.appendChild(tr);
-    });
-    var validityTr = document.createElement('tr');
-    validityTr.innerHTML =
-      '<th scope="row">Course Validity</th>' +
-      '<td class="hotcol val">3 months longer</td>' +
-      '<td class="val">Runs through the exam</td>';
-    cmpBody.appendChild(validityTr);
-  }
-
-  /* ---------------- testimonials carousel ----------------
-     All of them, condensed from the live site's own testimonial wall. */
+  /* ---------------- student quotes ----------------
+     Condensed from the live site's own testimonial wall. Shown in full, in
+     a rail the student scrolls themselves: no auto-scroll, no star ratings
+     (there is no rating data behind them). */
   var QUOTES = [
-    { n: 'keshavan A', r: 'IISc · Analog VLSI', i: 'KA', t: 'PrepFusion has been instrumental right from my GATE preparation — it helped me get into IISc, and from there into an analog VLSI role at one of the oldest and top-rated semiconductor companies. All the fundamentals are covered with deep, intuitive explanation. I think PrepFusion is the best starting point for anyone who wants to get into the VLSI domain.' },
-    { n: 'Mohok Bhaduri', r: 'AIR 9 · GATE EC 2026', i: 'MB', t: 'The GATE TITANS batch was extremely well organised, covering every concept from fundamentals to advanced problem solving. Himanshu Sir explained even the toughest topics in a simple, intuitive way. The test series were very close to the actual GATE level and improved my accuracy, speed and confidence.' },
-    { n: 'Yashu', r: 'Placed at AMD', i: 'Y', t: 'Taking Himanshu Bhaiya’s analog course was a game-changer. The concepts were explained in a clear and practical way, which directly helped me during my interview at AMD — they asked questions on both analog and digital, and I felt well prepared. That it was offered at such an affordable price made it even more accessible.' },
+    { n: 'Keshavan A', r: 'IISc, Analog VLSI', i: 'KA', t: 'PrepFusion has been instrumental right from my GATE preparation. It helped me get into IISc, and from there into an analog VLSI role at one of the oldest and top-rated semiconductor companies. All the fundamentals are covered with deep, intuitive explanation. I think PrepFusion is the best starting point for anyone who wants to get into the VLSI domain.' },
+    { n: 'Yashu', r: 'Placed at AMD', i: 'Y', t: 'Taking Himanshu Bhaiya’s analog course was a game-changer. The concepts were explained in a clear and practical way, which directly helped me during my interview at AMD. They asked questions on both analog and digital, and I felt well prepared. That it was offered at such an affordable price made it even more accessible.' },
     { n: 'Banu Prasad M', r: 'Semiconductor internship', i: 'BP', t: 'The content on the channel has been immensely helpful in my journey towards securing an internship at a top semiconductor company. The detailed explanations, practical examples and insightful advice deepened my understanding of key concepts and boosted my confidence during tests and interviews.' },
-    { n: 'JAYASAKTHI J R', r: 'GATE aspirant', i: 'JR', t: 'I have explored many channels for the GATE exam for about 3 years, but none provided this much quality content, clear explanation and perfect notes like PrepFusion does. Thank you so much — I am way too much grateful to you guys.' },
-    { n: 'prabhath', r: 'Test series student', i: 'P', t: 'Just took the Network Theory full-length test — it was really awesome, I can’t describe it in words. The content you and Himanshu deliver, and the test series, are made really well. An exact replica of predicted GATE questions.' },
-    { n: 'Karthick', r: 'Internship prep', i: 'K', t: 'I am deeply grateful for the guidance and high-quality content provided at no cost — it played a pivotal role in my success at internship preparation. Thank you Himanshu Sir for making such a big difference.' },
-    { n: 'A. Parameswara Reddy', r: 'Verilog series', i: 'AR', t: 'I had been searching for a proper Verilog series for quite some time, but nowhere did I find the clarity and depth that your lectures provide. The way you break down concepts makes such a huge difference, and I can see how valuable this knowledge will be for my learning and future work.' },
-    { n: 'maneesh', r: 'GATE aspirant', i: 'M', t: 'I am really happy listening to PrepFusion classes. This platform is meant for excellent content for GATE aspirants.' },
-    { n: 'Pranitha Reddy', r: 'Digital Electronics', i: 'PR', t: 'I love the digital electronics, the way it is taught in PrepFusion.' },
-    { n: 'PrepFusion student', r: 'Verilog series', i: 'PF', t: 'This is the best channel to learn Verilog.' }
+    { n: 'Jayasakthi J R', r: 'GATE aspirant', i: 'JR', t: 'I have explored many channels for the GATE exam for about 3 years, but none provided this much quality content, clear explanation and perfect notes like PrepFusion does. Thank you so much. I am way too much grateful to you guys.' },
+    { n: 'Prabhath', r: 'Test series student', i: 'P', t: 'Just took the Network Theory full-length test. It was really awesome, I can’t describe it in words. The content you and Himanshu deliver, and the test series, are made really well.' },
+    { n: 'Karthick', r: 'Internship prep', i: 'K', t: 'I am deeply grateful for the guidance and high-quality content provided at no cost. It played a pivotal role in my success at internship preparation. Thank you Himanshu Sir for making such a big difference.' },
+    { n: 'A. Parameswara Reddy', r: 'Verilog series', i: 'AR', t: 'I had been searching for a proper Verilog series for quite some time, but nowhere did I find the clarity and depth that your lectures provide. The way you break down concepts makes such a huge difference.' },
+    { n: 'Maneesh', r: 'GATE aspirant', i: 'M', t: 'I am really happy listening to PrepFusion classes. This platform is meant for excellent content for GATE aspirants.' },
+    { n: 'Pranitha Reddy', r: 'Digital Electronics', i: 'PR', t: 'I love the digital electronics, the way it is taught in PrepFusion.' }
   ];
-
-  var star = '<svg width="12" height="12" viewBox="0 0 24 24" fill="var(--accent)" aria-hidden="true"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1Z"/></svg>';
-  var qEl = document.getElementById('quotes');
-  var quoteScrim = document.getElementById('quote-scrim');
-  var quoteCloseBtn = document.getElementById('quote-close');
-
-  function openQuote(q) {
-    document.getElementById('quote-modal-av').textContent = q.i;
-    document.getElementById('quote-modal-name').textContent = q.n;
-    document.getElementById('quote-modal-text').textContent = q.t;
-    document.getElementById('quote-modal-role').textContent = q.r;
-    document.getElementById('quote-modal-stars').innerHTML = star + star + star + star + star;
-    quoteScrim.classList.add('on');
-  }
-  function closeQuote() { quoteScrim.classList.remove('on'); }
-  if (quoteCloseBtn) quoteCloseBtn.addEventListener('click', closeQuote);
-  if (quoteScrim) quoteScrim.addEventListener('click', function (e) { if (e.target === quoteScrim) closeQuote(); });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && quoteScrim && quoteScrim.classList.contains('on')) closeQuote();
-  });
-
+  var qEl = $('quotes');
   if (qEl) {
-    function quoteCard(q) {
-      var b = document.createElement('blockquote');
-      b.className = 'quote';
-      b.tabIndex = 0;
-      b.setAttribute('role', 'button');
-      b.setAttribute('aria-label', 'Read the full testimonial from ' + q.n);
-      b.innerHTML =
-        '<span class="stars" aria-label="5 out of 5">' + star + star + star + star + star + '</span>' +
-        '<p>' + q.t + '</p>' +
-        '<footer><span class="q-av">' + q.i + '</span><span>' + q.n + '<em>' + q.r + '</em></span></footer>';
-      b.addEventListener('click', function () { openQuote(q); });
-      b.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openQuote(q); }
-      });
-      return b;
-    }
-    /* Rendered twice back to back: auto-scroll runs across set 1, and the
-       instant it crosses into set 2 the scroll position is snapped back by
-       exactly one set's width — since the two sets are identical, that jump
-       is invisible, giving an infinite loop with no easing/reset stutter. */
-    QUOTES.forEach(function (q) { qEl.appendChild(quoteCard(q)); });
-    QUOTES.forEach(function (q) { qEl.appendChild(quoteCard(q)); });
+    QUOTES.forEach(function (q) {
+      var li = doc.createElement('li');
+      var fig = doc.createElement('figure');
+      fig.className = 'quote';
+      fig.innerHTML = '<blockquote><p></p></blockquote><figcaption><span class="q-av" aria-hidden="true"></span><span><b></b><span class="q-role"></span></span></figcaption>';
+      fig.querySelector('p').textContent = q.t;
+      fig.querySelector('.q-av').textContent = q.i;
+      fig.querySelector('b').textContent = q.n;
+      fig.querySelector('.q-role').textContent = q.r;
+      li.appendChild(fig);
+      qEl.appendChild(li);
+    });
+    var qPrev = $('q-prev'), qNext = $('q-next');
+    var stepQuotes = function (dir) {
+      var card = qEl.querySelector('.quote');
+      var step = card ? card.getBoundingClientRect().width + 14 : 320;
+      qEl.scrollBy({ left: dir * step, behavior: reduceMotion ? 'auto' : 'smooth' });
+    };
+    var syncQuoteBtns = function () {
+      var max = qEl.scrollWidth - qEl.clientWidth - 2;
+      qPrev.disabled = qEl.scrollLeft <= 2;
+      qNext.disabled = qEl.scrollLeft >= max;
+    };
+    qPrev.addEventListener('click', function () { stepQuotes(-1); });
+    qNext.addEventListener('click', function () { stepQuotes(1); });
+    qEl.addEventListener('scroll', syncQuoteBtns, { passive: true });
+    window.addEventListener('resize', syncQuoteBtns, { passive: true });
+    syncQuoteBtns();
   }
 
-  var qPrev = document.getElementById('q-prev');
-  var qNext = document.getElementById('q-next');
-  var qWrap = document.querySelector('.quotes-wrap');
-  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var qPaused = false;
-  var qResumeTimer = null;
-
-  function pauseAuto(ms) {
-    qPaused = true;
-    clearTimeout(qResumeTimer);
-    qResumeTimer = setTimeout(function () { qPaused = false; }, ms || 2600);
-  }
-
-  function scrollQuotes(dir) {
-    if (!qEl) return;
-    pauseAuto(3200);
-    var card = qEl.querySelector('.quote');
-    var step = card ? card.getBoundingClientRect().width + 14 : 300;
-    qEl.scrollBy({ left: dir * step * 2, behavior: 'smooth' });
-  }
-  if (qPrev) qPrev.addEventListener('click', function () { scrollQuotes(-1); });
-  if (qNext) qNext.addEventListener('click', function () { scrollQuotes(1); });
-
-  if (qEl && qWrap && !reduceMotion) {
-    qWrap.addEventListener('mouseenter', function () { qPaused = true; clearTimeout(qResumeTimer); });
-    qWrap.addEventListener('mouseleave', function () { qPaused = false; });
-    qWrap.addEventListener('touchstart', function () { pauseAuto(4000); }, { passive: true });
-    qWrap.addEventListener('focusin', function () { qPaused = true; clearTimeout(qResumeTimer); });
-    qWrap.addEventListener('focusout', function () { qPaused = false; });
-    /* wheel/trackpad or a manual drag also count as "the user is reading" */
-    qEl.addEventListener('wheel', function () { pauseAuto(3200); }, { passive: true });
-
-    /* desktop read slower (more text per card at that width), mobile a
-       touch faster than before — tuned by feel, not by a hard breakpoint
-       tied to the layout, so it stays right if the layout changes later */
-    var qSpeed = window.matchMedia('(max-width: 620px)').matches ? 0.55 : 0.32;
-    /* The position is tracked in a float of our own rather than by doing
-       `scrollLeft += qSpeed`. Reading scrollLeft back snaps it to a whole
-       device pixel, so a per-frame increment smaller than one device pixel is
-       rounded away and re-read as the same value every frame — the carousel
-       then never moves at all. That is exactly what happened on desktop
-       (0.32px/frame, below the ~0.8px quantum at 1.25x scaling) while mobile's
-       larger step happened to clear it. Accumulating separately and only
-       *writing* scrollLeft keeps the sub-pixel remainder between frames. */
-    var qPos = qEl.scrollLeft;
-    (function autoScroll() {
-      var half = qEl.scrollWidth / 2;
-      if (qPaused) {
-        /* the reader is scrolling it themselves — follow, don't fight */
-        qPos = qEl.scrollLeft;
-      } else if (half > 0) {
-        qPos += qSpeed;
-        if (qPos >= half) qPos -= half;
-        qEl.scrollLeft = qPos;
-      }
-      requestAnimationFrame(autoScroll);
-    })();
-  }
-
-  /* ---------------- banner carousel ----------------
-     Content comes from banners.json — written by the Decap CMS at /admin,
-     which commits straight to that file in the repo. This inline array is
-     ONLY the fallback for when the file is missing/empty/unreachable, so
-     the carousel never renders blank. Same field shape either way, so the
-     CMS's output needs no adapting on this end. */
+  /* ---------------- banners (banners.json) ----------------
+     banners.json is written by the admin portal (it commits straight to
+     this repo). Its file name, location and schema are fixed: an array of
+     { tag, title, text, cta, link, image }. This inline list is only the
+     fallback for when the file is missing or unreachable.
+     Nothing advances on its own: the student moves between slides. */
   var FALLBACK_BANNERS = [
-    {
-      tag: 'Admissions open',
-      title: 'GATE 2027 TITANS Batch',
-      text: 'Full syllabus, live guidance, 1:1 mentorship and the complete test series.',
-      cta: 'Explore the batch',
-      link: 'https://prepfusion.in/new-courses?examId=6'
-    },
-    {
-      tag: 'Free to start',
-      title: 'Complete subjects, free to watch',
-      text: 'Watch a full subject end to end before you spend anything. No card needed.',
-      cta: 'Browse free courses',
-      link: 'https://prepfusion.in/zero-price-courses'
-    },
-    {
-      tag: 'Placements',
-      title: 'Campus to Core VLSI',
-      text: 'Analog and Digital interview prep, screening tests and a dedicated placement series.',
-      cta: 'See placement courses',
-      link: 'https://prepfusion.in/new-courses?examId=7'
-    }
+    { tag: 'Admissions open', title: 'GATE 2027 TITANS Batch', text: 'Full syllabus, live guidance, 1:1 mentorship and the complete test series.', cta: 'Explore the batch', link: 'https://prepfusion.in/new-courses?examId=6' },
+    { tag: 'Free to start', title: 'Complete subjects, free to watch', text: 'Watch a full subject end to end before you spend anything. No card needed.', cta: 'Browse free courses', link: 'https://prepfusion.in/zero-price-courses' },
+    { tag: 'Placements', title: 'Campus to Core VLSI', text: 'Analog and Digital interview prep, screening tests and a dedicated placement series.', cta: 'See placement courses', link: 'https://prepfusion.in/new-courses?examId=7' }
   ];
+
+  /* EC and EE get mixed up, so a branch-specific slide says its branch in
+     words, read from the title the admin portal already writes. */
+  function branchLine(title) {
+    var t = ' ' + (title || '') + ' ';
+    var ec = /[^A-Za-z](ECE?)[^A-Za-z]/.test(t);
+    var ee = /[^A-Za-z]EE[^A-Za-z]/.test(t);
+    if (ec && !ee) return 'Only for GATE Electronics (EC)';
+    if (ee && !ec) return 'Only for GATE Electrical (EE)';
+    return '';
+  }
+
+  /* Optimised variants written by tools/optimize-images.mjs, named after the
+     uploaded file. A banner uploaded since the script last ran has none yet:
+     the image then falls back to the original upload. */
+  var VARIANT_WIDTHS = [480, 800, 1200];
+  function bannerPicture(src, alt, eager) {
+    var pic = doc.createElement('picture');
+    var m = /^assets\/img\/banners\/([^/]+)\.(jpe?g|png|webp)$/i.exec(src || '');
+    var sizes = '(max-width: 760px) calc(100vw - 2 * clamp(16px, 4vw, 32px)), 620px';
+    if (m) {
+      ['avif', 'webp'].forEach(function (ext) {
+        var s = doc.createElement('source');
+        s.type = 'image/' + ext;
+        s.srcset = VARIANT_WIDTHS.map(function (w) { return 'assets/img/opt/banners/' + m[1] + '-' + w + '.' + ext + ' ' + w + 'w'; }).join(', ');
+        s.sizes = sizes;
+        pic.appendChild(s);
+      });
+    }
+    var img = doc.createElement('img');
+    img.src = src;
+    if (m) {
+      img.srcset = VARIANT_WIDTHS.map(function (w) { return 'assets/img/opt/banners/' + m[1] + '-' + w + '.jpg ' + w + 'w'; }).join(', ');
+      img.sizes = sizes;
+    }
+    img.alt = alt;
+    img.width = 1200;
+    img.height = 800;
+    img.decoding = 'async';
+    img.loading = eager ? 'eager' : 'lazy';
+    img.addEventListener('error', function onErr() {
+      img.removeEventListener('error', onErr);
+      pic.querySelectorAll('source').forEach(function (s) { s.remove(); });
+      img.removeAttribute('srcset');
+      img.src = src;
+    });
+    pic.appendChild(img);
+    fadeIn(img);
+    return pic;
+  }
+
   function renderBanners(list) {
-    var bTrack = document.getElementById('banner-track');
-    var bNav = document.getElementById('banner-nav');
-    if (!bTrack || !list || !list.length) return;
-    var bIndex = 0;
-    var bTimer = null;
+    var track = $('banner-track');
+    var nav = $('banner-nav');
+    if (!track || !list || !list.length) return;
+    var index = 0;
+    track.textContent = '';
 
     list.forEach(function (b, i) {
-      /* One banner shape, not two styles. Every slide is a solid-colour panel
-         carrying the copy on the left and the uploaded graphic on the right.
-         Below the narrow breakpoint the copy is hidden by CSS and the graphic
-         fills the slide on its own — a phone has room for one or the other,
-         and the graphic already carries its own branding.
-         The two degenerate cases still render sensibly: no graphic keeps the
-         copy full-width (.no-img), no copy leaves the graphic alone. */
-      var a = document.createElement('a');
-      var hasImage = Boolean(b.image);
-      var hasCopy = Boolean(b.title || b.tag || b.text || b.cta);
-      a.className = 'banner-slide' + (hasImage ? '' : ' no-img') + (hasCopy ? '' : ' no-copy') + (i === 0 ? ' on' : '');
-      a.href = b.link || '#0';
-      a.setAttribute('aria-hidden', i === 0 ? 'false' : 'true');
-
-      if (hasCopy) {
-        var copy = document.createElement('div');
-        copy.className = 'bs-copy';
-        copy.innerHTML =
-          (b.tag ? '<em>' + b.tag + '</em>' : '') +
-          (b.title ? '<b>' + b.title + '</b>' : '') +
-          (b.text ? '<span>' + b.text + '</span>' : '') +
-          (b.cta ? '<i>' + b.cta + ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i>' : '');
-        a.appendChild(copy);
+      var a = doc.createElement('a');
+      a.className = 'banner-slide' + (i === 0 ? ' on' : '');
+      a.href = courseUrl(b.link) || '#courses';
+      if (b.image) {
+        var fig = doc.createElement('div');
+        fig.className = 'bs-figure';
+        fig.appendChild(bannerPicture(b.image, b.title ? b.title + ', course banner' : 'Course banner', i === 0));
+        a.appendChild(fig);
       }
-      if (hasImage) {
-        var img = document.createElement('img');
-        img.src = b.image;
-        img.alt = b.title || 'Banner';
-        img.loading = i === 0 ? 'eager' : 'lazy';
-        var figure = document.createElement('div');
-        figure.className = 'bs-figure';
-        figure.appendChild(img);
-        a.appendChild(figure);
+      var copy = doc.createElement('div');
+      copy.className = 'bs-copy';
+      var forLine = branchLine(b.title);
+      [['bs-tag', b.tag], ['bs-title', b.title], ['bs-for', forLine], ['bs-text', b.text]].forEach(function (p) {
+        if (!p[1]) return;
+        var el = doc.createElement('span');
+        el.className = p[0];
+        el.textContent = p[1];
+        copy.appendChild(el);
+      });
+      if (b.cta) {
+        var cta = doc.createElement('span');
+        cta.className = 'btn btn-primary bs-cta';
+        cta.textContent = b.cta;
+        cta.insertAdjacentHTML('beforeend', '<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg>');
+        copy.appendChild(cta);
       }
-      bTrack.appendChild(a);
+      a.appendChild(copy);
+      track.appendChild(a);
 
-      var d = document.createElement('button');
+      var d = doc.createElement('button');
       d.type = 'button';
       d.className = 'banner-dot';
-      d.textContent = i + 1;
-      d.setAttribute('aria-label', 'Banner ' + (i + 1));
+      d.setAttribute('aria-label', 'Slide ' + (i + 1) + (b.title ? ': ' + b.title : ''));
       d.setAttribute('aria-current', i === 0 ? 'true' : 'false');
-      d.addEventListener('click', function () { show(i); restart(); });
-      bNav.appendChild(d);
+      d.addEventListener('click', function () { show(i); });
+      nav.appendChild(d);
     });
+
+    var single = list.length < 2;
+    $('banner-prev').hidden = single;
+    $('banner-next').hidden = single;
+    nav.hidden = single;
 
     function show(i) {
-      bIndex = (i + list.length) % list.length;
-      bTrack.querySelectorAll('.banner-slide').forEach(function (el, n) {
-        var on = n === bIndex;
-        el.classList.toggle('on', on);
-        el.setAttribute('aria-hidden', on ? 'false' : 'true');
-      });
-      bNav.querySelectorAll('.banner-dot').forEach(function (el, n) {
-        el.setAttribute('aria-current', n === bIndex ? 'true' : 'false');
-      });
+      index = (i + list.length) % list.length;
+      track.querySelectorAll('.banner-slide').forEach(function (el, n) { el.classList.toggle('on', n === index); });
+      nav.querySelectorAll('.banner-dot').forEach(function (el, n) { el.setAttribute('aria-current', n === index ? 'true' : 'false'); });
     }
-    function restart() {
-      clearInterval(bTimer);
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && list.length > 1) {
-        bTimer = setInterval(function () { show(bIndex + 1); }, 6000);
-      }
-    }
-    document.getElementById('banner-prev').addEventListener('click', function () { show(bIndex - 1); restart(); });
-    document.getElementById('banner-next').addEventListener('click', function () { show(bIndex + 1); restart(); });
-    /* pause while the pointer is over the banner so a slide can be read/clicked */
-    bTrack.addEventListener('mouseenter', function () { clearInterval(bTimer); });
-    bTrack.addEventListener('mouseleave', restart);
+    $('banner-prev').addEventListener('click', function () { show(index - 1); });
+    $('banner-next').addEventListener('click', function () { show(index + 1); });
 
-    /* touch swipe — slides are crossfaded via .on, not a real scroll
-       container, so swiping has to be read from raw touch deltas. A tap
-       (no real horizontal movement) is left alone so the slide's own link
-       still opens normally. */
-    var touchStartX = 0, touchStartY = 0, touchDeltaX = 0, didSwipe = false;
-    bTrack.addEventListener('touchstart', function (e) {
-      var t = e.touches[0];
-      touchStartX = t.clientX; touchStartY = t.clientY; touchDeltaX = 0;
-      /* A real swipe usually never fires a click at all (the browser drops it
-         once movement passes its own threshold), so the click handler below
-         never gets a chance to clear didSwipe. Left set, it would wrongly eat
-         the *next*, separate tap — the "have to click twice after swiping"
-         bug. Each new gesture starts clean instead of trusting the previous
-         one's click to have cleaned up after itself. */
-      didSwipe = false;
-      clearInterval(bTimer);
-    }, { passive: true });
-    bTrack.addEventListener('touchmove', function (e) {
-      var t = e.touches[0];
-      touchDeltaX = t.clientX - touchStartX;
-    }, { passive: true });
-    bTrack.addEventListener('touchend', function (e) {
-      var t = e.changedTouches[0];
-      var deltaY = t.clientY - touchStartY;
-      if (Math.abs(touchDeltaX) > 40 && Math.abs(touchDeltaX) > Math.abs(deltaY)) {
-        didSwipe = true;
-        show(bIndex + (touchDeltaX < 0 ? 1 : -1));
-      }
-      restart();
+    /* Touch swipe. A tap (no real horizontal movement) still opens the
+       slide's link; a swipe never does. */
+    var x0 = 0, y0 = 0, dx = 0, swiped = false;
+    track.addEventListener('touchstart', function (e) { var t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; dx = 0; swiped = false; }, { passive: true });
+    track.addEventListener('touchmove', function (e) { dx = e.touches[0].clientX - x0; }, { passive: true });
+    track.addEventListener('touchend', function (e) {
+      var dy = e.changedTouches[0].clientY - y0;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { swiped = true; show(index + (dx < 0 ? 1 : -1)); }
     });
-    bTrack.addEventListener('click', function (e) {
-      if (didSwipe) { e.preventDefault(); didSwipe = false; }
-    }, true);
-
-    restart();
+    track.addEventListener('click', function (e) { if (swiped) { e.preventDefault(); swiped = false; } }, true);
   }
-
-  /* ---------------- category strip arrows (mobile carousel mode) ----------------
-     On wide screens .cat-grid is a plain CSS grid and these buttons stay
-     hidden; below 620px it becomes a real horizontal-scroll flex strip
-     (native swipe already works there), and the arrows just nudge it by
-     one card. */
-  var catGrid = document.querySelector('.cat-grid');
-  var catPrev = document.getElementById('cat-prev');
-  var catNext = document.getElementById('cat-next');
-  function scrollCats(dir) {
-    if (!catGrid) return;
-    var card = catGrid.querySelector('.cat-card');
-    var step = card ? card.getBoundingClientRect().width + 14 : 260;
-    catGrid.scrollBy({ left: dir * step, behavior: 'smooth' });
-  }
-  if (catPrev) catPrev.addEventListener('click', function () { scrollCats(-1); });
-  if (catNext) catNext.addEventListener('click', function () { scrollCats(1); });
 
   fetch('banners.json', { cache: 'no-cache' })
-    .then(function (r) { if (!r.ok) throw new Error('no banners.json'); return r.json(); })
-    .then(function (data) {
-      var list = (data && data.banners && data.banners.length) ? data.banners : FALLBACK_BANNERS;
-      renderBanners(list);
-    })
+    .then(function (r) { if (!r.ok) throw new Error('banners.json ' + r.status); return r.json(); })
+    .then(function (data) { renderBanners(data && data.banners && data.banners.length ? data.banners : FALLBACK_BANNERS); })
     .catch(function () { renderBanners(FALLBACK_BANNERS); });
-
-  })();
+})();
