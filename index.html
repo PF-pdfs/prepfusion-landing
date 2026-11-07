@@ -2,18 +2,37 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0a1020" />
 <title>PrepFusion — GATE, ESE &amp; Placement Preparation for ECE, EE, IN</title>
 <meta name="description" content="GATE, ESE and placement preparation for ECE, EE and IN — taught by AIR holders. Every core subject free forever, the same videos as the paid course." />
 <link rel="icon" href="assets/img/favicon.png" />
+<link rel="apple-touch-icon" href="assets/img/favicon.png" />
 
-<!-- Open Graph + Twitter Card — what WhatsApp/Telegram/iMessage/etc. read to
-     build a link preview. og:image must be an absolute URL (relative paths
-     don't work here — these are fetched by the sharing app itself, with no
-     concept of "current page" to resolve against). Points at go.prepfusion.in
-     specifically since that's the real, working URL — see cloudflare/ in
-     this repo for why prepfusion.in itself only redirects here. -->
+<!-- Theme, before first paint, so the wrong theme never flashes.
+     Dark by default on every PrepFusion site; light only by choice.
+     Read order: the pf-theme cookie (shared across *.prepfusion.in, so a
+     choice made on the Hub or the Store carries over), then this site's
+     localStorage, then dark. script.js writes both on toggle. -->
+<script>
+  (function () {
+    var theme = 'dark', t = null;
+    try { var m = document.cookie.match(/(?:^|;\s*)pf-theme=(light|dark)/); if (m) t = m[1]; } catch (err) {}
+    if (!t) { try { t = localStorage.getItem('pf-theme'); } catch (err) {} }
+    if (t === 'light') theme = 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.className += ' js';
+    if (theme === 'light') document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f2f5fa');
+  })();
+</script>
+
+<!-- SEO block. These absolute URLs are the GitHub Pages defaults and the
+     ONLY place the site's own origin is written. Under Cloudflare the
+     hosting Worker (hosting/worker.js) rewrites every one of them from its
+     SITE_ORIGIN variable. See docs/domain-switch.md. -->
+<link rel="canonical" href="https://go.prepfusion.in/" />
 <meta property="og:type" content="website" />
+<meta property="og:site_name" content="PrepFusion" />
 <meta property="og:url" content="https://go.prepfusion.in/" />
 <meta property="og:title" content="PrepFusion — GATE, ESE & Placement Preparation for ECE, EE, IN" />
 <meta property="og:description" content="GATE, ESE and placement preparation for ECE, EE and IN — taught by AIR holders. Every core subject free forever, the same videos as the paid course." />
@@ -24,56 +43,109 @@
 <meta name="twitter:title" content="PrepFusion — GATE, ESE & Placement Preparation for ECE, EE, IN" />
 <meta name="twitter:description" content="GATE, ESE and placement preparation for ECE, EE and IN — taught by AIR holders. Every core subject free forever, the same videos as the paid course." />
 <meta name="twitter:image" content="https://go.prepfusion.in/assets/img/og-preview.jpg" />
-<script>
-  /* Blocking, on purpose: sets the theme before first paint so there's no
-     flash of the wrong theme while the deferred script.js loads.
-     Dark by default: a first-time visitor sees dark regardless of their OS
-     setting, unless they've explicitly chosen light here before. Matches
-     script.js's toggle logic below — keep the two in sync. */
-  (function () {
-    var theme = 'dark';
-    try {
-      if (localStorage.getItem('pf-theme') === 'light') theme = 'light';
-    } catch (err) { /* storage blocked — falls back to the dark default */ }
-    document.documentElement.setAttribute('data-theme', theme);
-  })();
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "EducationalOrganization",
+      "@id": "https://go.prepfusion.in/#org",
+      "name": "PrepFusion",
+      "url": "https://go.prepfusion.in/",
+      "logo": "https://go.prepfusion.in/assets/img/favicon.png",
+      "email": "prepfusion.edu.contact@gmail.com",
+      "sameAs": [
+        "https://www.youtube.com/@PrepFusion_GATE",
+        "https://www.youtube.com/@prepfusion-hindi",
+        "https://t.me/All_About_Learning",
+        "https://hub.prepfusion.in/",
+        "https://store.prepfusion.in/"
+      ]
+    },
+    {
+      "@type": "Course",
+      "name": "GATE ECE full batch: TITANS and Pathfinders",
+      "description": "The full GATE Electronics and Communication (EC) syllabus, with 1000+ hours of recorded lectures, printable notes, PYQ solutions and personal doubt support.",
+      "url": "https://prepfusion.in/new-courses?examId=6",
+      "provider": { "@id": "https://go.prepfusion.in/#org" }
+    },
+    {
+      "@type": "Course",
+      "name": "GATE EE full batch: TITANS and Pathfinders",
+      "description": "The full GATE Electrical (EE) syllabus, with 1000+ hours of recorded lectures, printable notes, PYQ solutions and personal doubt support.",
+      "url": "https://prepfusion.in/new-courses?examId=6",
+      "provider": { "@id": "https://go.prepfusion.in/#org" }
+    }
+  ]
+}
 </script>
+
+<!-- Fonts: Sora and Inter are self-hosted (styles.css, assets/fonts/); the
+     headline face is preloaded. IBM Plex Mono still comes from Google Fonts,
+     loaded without blocking the first paint. -->
+<link rel="preload" href="assets/fonts/sora-latin-var.v17.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="assets/fonts/inter-latin-var.v20.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link
-  rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
-/>
-<!-- ?v= busts the 12h Cache-Control this host sends for these two files —
-     without it, a phone that loaded the page before a deploy can keep
-     serving the old script/styles for up to 12h even on a plain reload
-     (this bit a real report: a fix landed, tested correct on the server,
-     and still "didn't work" on the reporter's phone until they cleared
-     cache — see git history around 2026-08-16). No build step here, so
-     bump this by hand whenever script.js or styles.css changes. -->
-<link rel="stylesheet" href="styles.css?v=20260816a" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&display=swap" media="print" onload="this.media='all'" />
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&display=swap" /></noscript>
+
+<!-- The banners are the first thing under the header: start fetching their
+     list right away instead of waiting for script.js. -->
+<link rel="preload" href="banners.json" as="fetch" crossorigin />
+
+<!-- Faster hops to the other PrepFusion sites. -->
+<link rel="preconnect" href="https://hub.prepfusion.in" />
+<link rel="preconnect" href="https://store.prepfusion.in" />
+<link rel="dns-prefetch" href="https://prepfusion.in" />
+<link rel="dns-prefetch" href="https://brochure.prepfusion.in" />
+
+<!-- ?v= is the cache key: bump it by hand whenever styles.css or script.js
+     changes (no build step). Versioned URLs can be cached for a long time. -->
+<link rel="stylesheet" href="styles.css?v=20261107c" />
+<script src="script.js?v=20261107c" defer></script>
+
+<!-- Prefetch (not prerender) the Hub and the Store when a link to them is
+     hovered or pressed. -->
+<script type="speculationrules">
+{
+  "prefetch": [
+    {
+      "where": { "or": [
+        { "href_matches": "https://hub.prepfusion.in/*" },
+        { "href_matches": "https://store.prepfusion.in/*" }
+      ] },
+      "eagerness": "moderate"
+    }
+  ]
+}
+</script>
 </head>
 <body>
-<!-- ============================== LANDING ============================== -->
-  <header class="bar on-hero" id="site-bar">
+<a class="skip" href="#main">Skip to content</a>
+<!-- ============================== LANDING ==============================
+     The header follows prepfusion.in's own: a floating rounded bar with the
+     round logo, the same course links and a "More" menu. -->
+  <header class="bar" id="site-bar">
     <div class="bar-in">
-      <a class="logo" href="#0">Prep<b>Fusion</b></a>
-      <nav class="nav" id="main-nav">
-        <a href="#0" data-external="free">Free Courses</a>
-        <a href="#0" data-external="gate-full">GATE Full Course</a>
-        <a href="#0" data-external="placement">Placement Courses</a>
-        <a href="#0" data-external="subjectwise">GATE Subjectwise Courses</a>
+      <a class="logo" href="./"><img class="logo-img" src="assets/img/favicon.png" alt="" width="36" height="36" /><span>Prep<b>Fusion</b></span></a>
+      <nav class="nav" id="main-nav" aria-label="Courses">
+        <a href="https://prepfusion.in/zero-price-courses" data-external="free" data-course>Free Courses</a>
+        <a href="https://prepfusion.in/new-courses?examId=6" data-external="gate-full" data-course>GATE Full Course</a>
+        <a href="https://prepfusion.in/new-courses?examId=7" data-external="placement" data-course>Placement Courses</a>
+        <a href="https://prepfusion.in/new-courses?examId=4" data-external="subjectwise" data-course>GATE Subjectwise Courses</a>
         <div class="nav-more">
-          <button type="button" class="nav-more-btn" id="more-btn" aria-haspopup="true" aria-expanded="false">
+          <button type="button" class="nav-more-btn" id="more-btn" aria-expanded="false" aria-controls="more-panel">
             More
             <svg class="nav-more-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
           </button>
-          <div class="nav-more-panel" id="more-panel" role="menu">
-            <a href="#0" data-external="test" role="menuitem">Test Series</a>
-            <a href="#0" data-external="combo" role="menuitem">GATE Subjectwise Combo Courses</a>
-            <a href="https://store.prepfusion.in/" target="_blank" rel="noopener noreferrer" role="menuitem">Bookstore <span class="tag-live">Live</span></a>
-            <a href="https://hub.prepfusion.in/" target="_blank" rel="noopener noreferrer" role="menuitem">Study Hub</a>
-            <a href="https://pyq.prepfusion.in/" target="_blank" rel="noopener noreferrer" role="menuitem">Practice GATE PYQs <span class="ext">&#8599;</span></a>
+          <div class="nav-more-panel" id="more-panel">
+            <a href="https://prepfusion.in/test-series" data-external="test" data-course>Test Series</a>
+            <a href="https://prepfusion.in/new-courses?examId=5" data-external="combo" data-course>GATE Subjectwise Combo Courses</a>
+            <a href="https://store.prepfusion.in/" target="_blank" rel="noopener noreferrer">Bookstore <span class="tag-live">Live</span></a>
+            <a href="https://hub.prepfusion.in/" target="_blank" rel="noopener noreferrer">Study Hub</a>
+            <a href="https://pyq.prepfusion.in/" target="_blank" rel="noopener noreferrer">Practice GATE PYQs <span class="ext">&#8599;</span></a>
+            <a href="https://brochure.prepfusion.in/" target="_blank" rel="noopener noreferrer">Brochures <span class="ext">&#8599;</span></a>
           </div>
         </div>
       </nav>
@@ -81,7 +153,7 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
       <div class="bar-cta">
-        <button type="button" class="tt" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <button type="button" class="tt" id="theme-toggle" data-themebtn aria-pressed="true" aria-label="Dark mode" title="Dark mode">
           <svg class="i-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
           <svg class="i-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
         </button>
@@ -89,7 +161,7 @@
     </div>
   </header>
 
-<div id="s-home">
+<main id="main" tabindex="-1">
 
   <div class="hero">
     <canvas id="trace" aria-hidden="true"></canvas>
@@ -104,7 +176,13 @@
       <button type="button" class="banner-arrow next" id="banner-next" aria-label="Next banner">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
       </button>
-      <div class="banner-nav" id="banner-nav" role="tablist" aria-label="Choose banner"></div>
+      <div class="banner-ctrl">
+        <div class="banner-nav" id="banner-nav" aria-label="Choose banner"></div>
+        <button type="button" class="banner-pause" id="banner-pause" aria-pressed="false" aria-label="Pause the banners">
+          <svg class="i-pause" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
+          <svg class="i-play" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+      </div>
     </div>
 
     <div class="hero-in">
@@ -116,6 +194,10 @@
             Learn through concepts. Understand through intuition. Grow with guidance. A complete learning
             experience designed to help you build strong fundamentals and achieve your goals.
           </p>
+          <div class="hero-cta">
+            <a class="btn btn-y btn-lg" href="#batches">See the full GATE batches</a>
+            <a class="btn btn-ghost btn-lg" href="#courses">Explore Our Courses</a>
+          </div>
         </div>
 
         <div class="proof">
@@ -142,7 +224,7 @@
 
 
   <!-- ---------------- BROWSE BY CATEGORY (Phase 1: redirects to the existing site) ---------------- -->
-  <section class="sec wrap">
+  <section class="sec wrap" id="courses">
     <h2 class="sh">Explore Our Courses</h2>
     <p class="sub">Pick the track that fits how you are preparing.</p>
     <div class="cat-wrap">
@@ -150,28 +232,28 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
       </button>
       <div class="cat-grid">
-        <a class="cat-card" href="#0" data-external="free">
+        <a class="cat-card" href="https://prepfusion.in/zero-price-courses" data-external="free" data-course>
           <span class="cat-tag free">Start here</span>
           <b>Free Courses</b>
           <span>Watch full lectures on select subjects &mdash; no card needed</span>
         </a>
-        <a class="cat-card" href="#0" data-external="gate-full">
+        <a class="cat-card" href="https://prepfusion.in/new-courses?examId=6" data-external="gate-full" data-course>
           <b>GATE Full Course</b>
           <span>Pathfinders &amp; Titans, ECE and EE</span>
         </a>
-        <a class="cat-card" href="#0" data-external="subjectwise">
+        <a class="cat-card" href="https://prepfusion.in/new-courses?examId=4" data-external="subjectwise" data-course>
           <b>GATE Subject-wise</b>
           <span>One subject at a time</span>
         </a>
-        <a class="cat-card" href="#0" data-external="combo">
+        <a class="cat-card" href="https://prepfusion.in/new-courses?examId=5" data-external="combo" data-course>
           <b>GATE Combo Courses</b>
           <span>Related subjects bundled together</span>
         </a>
-        <a class="cat-card" href="#0" data-external="placement">
+        <a class="cat-card" href="https://prepfusion.in/new-courses?examId=7" data-external="placement" data-course>
           <b>Placement &amp; VLSI</b>
           <span>Analog, Digital and interview prep</span>
         </a>
-        <a class="cat-card" href="#0" data-external="test">
+        <a class="cat-card" href="https://prepfusion.in/test-series" data-external="test" data-course>
           <b>Test Series</b>
           <span>Topic, subject and full-length tests</span>
         </a>
@@ -180,6 +262,115 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
       </button>
     </div>
+  </section>
+
+  <!-- ---------------- FULL GATE BATCHES ----------------
+       The page's main job: get a GATE student to the right batch page.
+       Copy follows the batch brochures and the Hub's course pages
+       (PrepFusion-StudyHub-Website, scripts/consolidate-courses.js, PREMIUM.gate).
+       No dates and no prices here, on purpose: validity is said relative to
+       the exam ("until your GATE exam", "+3 months"), and prices live on the
+       batch pages. When a new exam year's batches open, change the four
+       course links below (data-batch-link) to the new batch pages.
+       The ECE/EE switch is two radio buttons and CSS (:has), so it works
+       without JavaScript; with no :has support both branches show. -->
+  <section class="sec wrap batches" id="batches" aria-labelledby="batches-h">
+    <h2 class="sh" id="batches-h">Full GATE Batches</h2>
+    <p class="sub">Every subject of your branch, taught end to end by Himanshu Agarwal and Anish Saha. Two batches, the same lectures; TITANS adds the support around them.</p>
+
+    <fieldset class="branch-switch">
+      <legend>Your GATE paper</legend>
+      <input type="radio" name="branch" id="br-ece" value="ece" checked />
+      <label for="br-ece">ECE <span>Electronics &amp; Communication</span></label>
+      <input type="radio" name="branch" id="br-ee" value="ee" />
+      <label for="br-ee">EE <span>Electrical</span></label>
+    </fieldset>
+
+    <div class="tiers">
+      <article class="tier tier-titans">
+        <div class="tier-head">
+          <span class="tier-flag">Full support</span>
+          <h3>TITANS Batch</h3>
+          <p class="tier-for">For college students and first-time aspirants who want mentorship, tests, the PYQ hard copy and post-GATE support.</p>
+        </div>
+        <p class="tier-plus">Everything in Pathfinders, plus:</p>
+        <ul class="tier-list">
+          <li>Bi-weekly 1:1 mentorship sessions</li>
+          <li>Premium test series: 100+ tests, 2,000+ questions</li>
+          <li>GATE PYQ hard-copy set, 5 books, delivered free</li>
+          <li>VLSI placement preparation course</li>
+          <li>M.Tech/MS admission preparation</li>
+          <li>PrepFusion Guide platform</li>
+        </ul>
+        <p class="tier-valid"><b>Access:</b> until your GATE exam <em>+ 3 months extra</em> for M.Tech/MS interviews</p>
+        <a class="btn btn-y btn-lg tier-cta for-ece" data-batch-link data-course href="https://prepfusion.in/new-courses/115-gate-2028-titans-batch-electronics-communication-engineering-ece-full-subscription">View the TITANS ECE batch <span aria-hidden="true">&rarr;</span></a>
+        <a class="btn btn-y btn-lg tier-cta for-ee" data-batch-link data-course href="https://prepfusion.in/new-courses/116-gate-2028-titans-batch-electrical-engineering-ee-full-subscription">View the TITANS EE batch <span aria-hidden="true">&rarr;</span></a>
+      </article>
+
+      <article class="tier">
+        <div class="tier-head">
+          <span class="tier-flag tier-flag-soft">Core batch</span>
+          <h3>Pathfinders Batch</h3>
+          <p class="tier-for">For droppers who already know the process and mainly need lectures, notes and doubt support.</p>
+        </div>
+        <ul class="tier-list">
+          <li>1000+ hours of recorded lectures, the full syllabus</li>
+          <li>Printable lecture notes &amp; slides</li>
+          <li>Personal doubt-solving and WhatsApp support</li>
+          <li>Assignments &amp; important PYQ solutions</li>
+          <li>Revision videos &amp; one-shots</li>
+          <li>GATE PYQ book (soft copy)</li>
+        </ul>
+        <p class="tier-valid"><b>Access:</b> until your GATE exam</p>
+        <a class="btn btn-lg tier-cta tier-cta-alt for-ece" data-batch-link data-course href="https://prepfusion.in/new-courses/74-gate-2028-full-course-ece-the-pathfinders">View the Pathfinders ECE batch <span aria-hidden="true">&rarr;</span></a>
+        <a class="btn btn-lg tier-cta tier-cta-alt for-ee" data-batch-link data-course href="https://prepfusion.in/new-courses/75-gate-2028-full-course-ee-the-pathfinders">View the Pathfinders EE batch <span aria-hidden="true">&rarr;</span></a>
+      </article>
+    </div>
+
+    <div class="batch-more">
+      <p class="for-ece">
+        <a href="https://brochure.prepfusion.in/ec" target="_blank" rel="noopener noreferrer">GATE ECE brochure <span aria-hidden="true">&#8599;</span></a>
+        <a href="https://youtu.be/LO-BVr5wzEA" target="_blank" rel="noopener noreferrer">GATE ECE orientation video <span aria-hidden="true">&#8599;</span></a>
+      </p>
+      <p class="for-ee">
+        <a href="https://brochure.prepfusion.in/ee" target="_blank" rel="noopener noreferrer">GATE EE brochure <span aria-hidden="true">&#8599;</span></a>
+        <a href="https://youtu.be/6vRRv1iaAKg" target="_blank" rel="noopener noreferrer">GATE EE orientation video <span aria-hidden="true">&#8599;</span></a>
+      </p>
+      <p><a href="https://prepfusion.in/new-courses?examId=6" data-external="gate-full" data-course>See every full GATE batch <span aria-hidden="true">&rarr;</span></a></p>
+    </div>
+
+    <details class="cmp-details">
+      <summary>Compare every feature, side by side</summary>
+      <div class="cmp-wrap" role="region" aria-label="TITANS and Pathfinders features compared" tabindex="0">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th scope="col">Features</th>
+              <th scope="col" class="hot">TITANS</th>
+              <th scope="col">Pathfinders</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">High quality video lectures</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">Printable lecture notes &amp; slides</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">General guidance &amp; preparation resource document</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">Personalized doubt-solving support</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">Personalized WhatsApp message support</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">Assignments &amp; important PYQ solutions</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">Revision videos &amp; one-shots</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">PYQ book (soft copy)</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">Bi-weekly 1:1 mentorship sessions</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
+            <tr><th scope="row">Test series</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
+            <tr><th scope="row">PYQ book (hard copy, 5-book set delivered free)</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
+            <tr><th scope="row">VLSI placement preparation course</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
+            <tr><th scope="row">M.Tech/MS admission preparation</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
+            <tr><th scope="row">PrepFusion Guide platform</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
+            <tr><th scope="row">Access</th><td class="hotcol val">Until your GATE exam + 3 months</td><td class="val">Until your GATE exam</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+    <p class="fine">Prices and current offers are on each batch page. IN is covered through the subjects it shares with ECE and EE; there is no separate IN batch.</p>
   </section>
 
   <!-- ---------------- TESTIMONIALS ---------------- -->
@@ -216,9 +407,16 @@
       <button type="button" class="quotes-nav prev" id="q-prev" aria-label="Previous testimonials">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
       </button>
-      <div class="quotes" id="quotes"></div>
+      <div class="quotes" id="quotes" role="region" aria-label="Student testimonials" tabindex="0"></div>
       <button type="button" class="quotes-nav next" id="q-next" aria-label="More testimonials">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+    <div class="quotes-ctrl">
+      <button type="button" class="quotes-pause" id="q-pause" aria-pressed="false">
+        <svg class="i-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
+        <svg class="i-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        <span class="q-pause-label">Pause scrolling</span>
       </button>
     </div>
   </section>
@@ -232,13 +430,13 @@
           Conversations with our own students after their result &mdash; how they actually prepared, what they
           would do differently, and what a GATE rank changed for them. Watch right here.
         </p>
-        <a class="btn btn-y btn-lg" id="open-rankers" href="https://youtube.com/playlist?list=PLgF7lRh8Xb_WTSnoquK-SpguOz3RePd-V&si=DzVVCGidT0DUs2Sq" style="margin-top:18px">
+        <a class="btn btn-y btn-lg" id="open-rankers" href="https://youtube.com/playlist?list=PLgF7lRh8Xb_WTSnoquK-SpguOz3RePd-V&amp;si=DzVVCGidT0DUs2Sq" aria-haspopup="dialog" style="margin-top:18px">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
           Watch the panel
         </a>
         <p class="panel-promo-note">Opens the full playlist right here &mdash; use the queue icon in the corner of the player to jump between interviews.</p>
       </div>
-      <button type="button" class="panel-promo-art" id="open-rankers-art" aria-label="Watch the Rankers' Interview Panel">
+      <button type="button" class="panel-promo-art" id="open-rankers-art" aria-haspopup="dialog" aria-label="Watch the Rankers' Interview Panel">
         <span class="stack-card sc1" style="--thumb:url('https://i.ytimg.com/vi/4jampvRkASk/mqdefault.jpg')"></span>
         <span class="stack-card sc2" style="--thumb:url('https://i.ytimg.com/vi/MhQNH1HAS_4/mqdefault.jpg')"></span>
         <span class="stack-card sc3" style="--thumb:url('https://i.ytimg.com/vi/VckH84A3QPg/mqdefault.jpg')">
@@ -255,7 +453,11 @@
     <p class="sub">Whole GATE ECE is led by Himanshu Sir. GATE EE is led by Anish Sir. Neither is a rotating faculty pool.</p>
     <div class="mentors">
       <div class="mentor">
-        <img class="mentor-photo" src="assets/img/himanshu.jpg" alt="Himanshu Agarwal" width="680" height="816" loading="lazy" />
+        <picture>
+          <source type="image/avif" srcset="assets/img/opt/himanshu.f48d81e7-240.avif 240w, assets/img/opt/himanshu.f48d81e7-400.avif 400w, assets/img/opt/himanshu.f48d81e7-600.avif 600w" sizes="(max-width: 620px) 84px, 132px" />
+          <source type="image/webp" srcset="assets/img/opt/himanshu.f48d81e7-240.webp 240w, assets/img/opt/himanshu.f48d81e7-400.webp 400w, assets/img/opt/himanshu.f48d81e7-600.webp 600w" sizes="(max-width: 620px) 84px, 132px" />
+          <img class="mentor-photo" src="assets/img/opt/himanshu.f48d81e7-400.jpg" srcset="assets/img/opt/himanshu.f48d81e7-240.jpg 240w, assets/img/opt/himanshu.f48d81e7-400.jpg 400w, assets/img/opt/himanshu.f48d81e7-600.jpg 600w" sizes="(max-width: 620px) 84px, 132px" alt="Himanshu Agarwal, in glasses and a black PrepFusion polo, arms folded" width="600" height="720" loading="lazy" decoding="async" />
+        </picture>
         <div class="mentor-info">
           <div class="mentor-id">
             <div>
@@ -271,7 +473,11 @@
         </div>
       </div>
       <div class="mentor">
-        <img class="mentor-photo" src="assets/img/anish.jpg" alt="Anish Saha" width="680" height="816" loading="lazy" />
+        <picture>
+          <source type="image/avif" srcset="assets/img/opt/anish.753d64c1-240.avif 240w, assets/img/opt/anish.753d64c1-400.avif 400w, assets/img/opt/anish.753d64c1-600.avif 600w" sizes="(max-width: 620px) 84px, 132px" />
+          <source type="image/webp" srcset="assets/img/opt/anish.753d64c1-240.webp 240w, assets/img/opt/anish.753d64c1-400.webp 400w, assets/img/opt/anish.753d64c1-600.webp 600w" sizes="(max-width: 620px) 84px, 132px" />
+          <img class="mentor-photo" src="assets/img/opt/anish.753d64c1-400.jpg" srcset="assets/img/opt/anish.753d64c1-240.jpg 240w, assets/img/opt/anish.753d64c1-400.jpg 400w, assets/img/opt/anish.753d64c1-600.jpg 600w" sizes="(max-width: 620px) 84px, 132px" alt="Anish Saha, in glasses and a black jacket over a PrepFusion polo, arms folded" width="600" height="720" loading="lazy" decoding="async" />
+        </picture>
         <div class="mentor-info">
           <div class="mentor-id">
             <div>
@@ -343,19 +549,7 @@
         <summary>What&rsquo;s the difference between TITANS and Pathfinders batches?</summary>
         <div class="a">
           <p>Both cover the complete GATE syllabus with the same lecture quality. TITANS is the full-support batch, with placement prep, guidance and the test series built in.</p>
-          <div class="cmp-wrap">
-            <table class="cmp">
-              <thead>
-                <tr>
-                  <th>Feature</th>
-                  <th class="hot">TITANS<span class="flag">Recommended</span></th>
-                  <th>Pathfinders</th>
-                </tr>
-              </thead>
-              <tbody id="cmp-body"></tbody>
-            </table>
-          </div>
-
+          <p>See the full feature comparison in <a href="#batches">Full GATE Batches</a> above, or read the <a href="https://brochure.prepfusion.in/ec" target="_blank" rel="noopener noreferrer">ECE brochure</a> and the <a href="https://brochure.prepfusion.in/ee" target="_blank" rel="noopener noreferrer">EE brochure</a>.</p>
         </div>
       </details>
       <details>
@@ -391,7 +585,7 @@
       </details>
       <details>
         <summary>How long do I keep access?</summary>
-        <div class="a"><p>Paid batches list an explicit validity date rather than a rolling subscription &mdash; TITANS runs longer than Pathfinders specifically so it covers the post-result window. Free courses have lifetime access to the videos and notes.</p></div>
+        <div class="a"><p>Pathfinders runs until your GATE exam. TITANS runs 3 months longer, so it covers the post-result window for M.Tech/MS interviews and admissions. Free courses have lifetime access to the videos and notes.</p></div>
       </details>
       <details>
         <summary>Is the test series close to the real paper?</summary>
@@ -400,7 +594,7 @@
       <details>
         <summary>Can I get a refund?</summary>
         <div class="a">
-          <p>Please assume <b>no</b>, and buy accordingly. These are digital courses, so under our <a href="https://prepfusion.in/refund-policy" target="_blank" rel="noopener noreferrer">Refunds &amp; Cancellation Policy</a> a refund is only issued in two situations: the course you paid for was not assigned to your account within the expiry period, or you were charged twice for the same course. Change of mind, or having watched part of a course, is not refundable.</p>
+          <p>Please assume <b>no</b>, and buy accordingly. These are digital courses, so under our <a href="https://prepfusion.in/refund-policy" data-course target="_blank" rel="noopener noreferrer">Refunds &amp; Cancellation Policy</a> a refund is only issued in two situations: the course you paid for was not assigned to your account within the expiry period, or you were charged twice for the same course. Change of mind, or having watched part of a course, is not refundable.</p>
           <p>That is exactly why we put a free version of every core subject up, with the same lectures as the paid one. Watch that first and decide before you spend anything &mdash; it is a far more honest trial than a refund window would be.</p>
         </div>
       </details>
@@ -426,16 +620,18 @@
     </div>
   </section>
 
+</main>
+
   <footer class="foot">
     <div class="foot-in">
       <div class="foot-brand">
-        <a class="logo" href="#0" style="color:var(--ink)">Prep<b>Fusion</b></a>
+        <a class="logo" href="./" style="color:var(--ink)">Prep<b>Fusion</b></a>
         <p>GATE, ESE and placement preparation for ECE, EE and IN &mdash; taught by AIR holders.</p>
       </div>
       <div>
-        <h4>Free</h4>
+        <h3>Free</h3>
         <ul>
-          <li><a href="#0" data-external="free">Free courses</a></li>
+          <li><a href="https://prepfusion.in/zero-price-courses" data-external="free" data-course>Free courses</a></li>
           <li><a href="https://store.prepfusion.in/" target="_blank" rel="noopener noreferrer">Bookstore</a></li>
           <li><a href="https://hub.prepfusion.in/" target="_blank" rel="noopener noreferrer">Study Hub</a></li>
           <li><a href="https://pyq.prepfusion.in/" target="_blank" rel="noopener noreferrer">Practice PYQs</a></li>
@@ -445,30 +641,31 @@
         </ul>
       </div>
       <div>
-        <h4>Courses
+        <h3>Courses
           <span class="info-ic" aria-label="About these links">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
           </span>
-        </h4>
+        </h3>
         <ul>
-          <li><a href="#0" data-external="gate-full">GATE Full Course</a></li>
-          <li><a href="#0" data-external="subjectwise">Subject-wise</a></li>
-          <li><a href="#0" data-external="combo">Combos</a></li>
-          <li><a href="#0" data-external="placement">Placements &amp; VLSI</a></li>
-          <li><a href="#0" data-external="test">Test Series</a></li>
+          <li><a href="https://prepfusion.in/new-courses?examId=6" data-external="gate-full" data-course>GATE Full Course</a></li>
+          <li><a href="https://prepfusion.in/new-courses?examId=4" data-external="subjectwise" data-course>Subject-wise</a></li>
+          <li><a href="https://prepfusion.in/new-courses?examId=5" data-external="combo" data-course>Combos</a></li>
+          <li><a href="https://prepfusion.in/new-courses?examId=7" data-external="placement" data-course>Placements &amp; VLSI</a></li>
+          <li><a href="https://prepfusion.in/test-series" data-external="test" data-course>Test Series</a></li>
+          <li><a href="https://brochure.prepfusion.in/" target="_blank" rel="noopener noreferrer">Brochures</a></li>
         </ul>
       </div>
       <div>
-        <h4>Company</h4>
+        <h3>Company</h3>
         <ul>
           <li><a href="https://pyq.prepfusion.in/about/" target="_blank" rel="noopener noreferrer">About</a></li>
-          <li><a href="https://prepfusion.in/terms" target="_blank" rel="noopener noreferrer">Terms &amp; Conditions</a></li>
-          <li><a href="https://prepfusion.in/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
-          <li><a href="https://prepfusion.in/refund-policy" target="_blank" rel="noopener noreferrer">Refunds &amp; Cancellation</a></li>
+          <li><a href="https://prepfusion.in/terms" data-course target="_blank" rel="noopener noreferrer">Terms &amp; Conditions</a></li>
+          <li><a href="https://prepfusion.in/privacy-policy" data-course target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+          <li><a href="https://prepfusion.in/refund-policy" data-course target="_blank" rel="noopener noreferrer">Refunds &amp; Cancellation</a></li>
         </ul>
       </div>
       <div class="foot-apps">
-        <h4>Get the app</h4>
+        <h3>Get the app</h3>
         <p>Same courses, downloadable lectures, offline playback.</p>
         <ul>
           <li><a href="https://play.google.com/store/apps/details?id=com.updakz.kbwcyr" target="_blank" rel="noopener noreferrer">
@@ -501,7 +698,6 @@
       </div>
     </div>
   </footer>
-</div>
 
 <!-- ==================== MOBILE DRAWER ====================
      Deliberately a child of <body>, not of <header>: the header is
@@ -516,12 +712,12 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>
   </div>
-  <a href="#0" data-external="free">Free Courses</a>
-  <a href="#0" data-external="gate-full">GATE Full Course</a>
-  <a href="#0" data-external="placement">Placement Courses</a>
-  <a href="#0" data-external="subjectwise">GATE Subjectwise Courses</a>
-  <a href="#0" data-external="test">Test Series</a>
-  <a href="#0" data-external="combo">GATE Subjectwise Combo Courses</a>
+  <a href="https://prepfusion.in/zero-price-courses" data-external="free" data-course>Free Courses</a>
+  <a href="https://prepfusion.in/new-courses?examId=6" data-external="gate-full" data-course>GATE Full Course</a>
+  <a href="https://prepfusion.in/new-courses?examId=7" data-external="placement" data-course>Placement Courses</a>
+  <a href="https://prepfusion.in/new-courses?examId=4" data-external="subjectwise" data-course>GATE Subjectwise Courses</a>
+  <a href="https://prepfusion.in/test-series" data-external="test" data-course>Test Series</a>
+  <a href="https://prepfusion.in/new-courses?examId=5" data-external="combo" data-course>GATE Subjectwise Combo Courses</a>
   <a href="https://store.prepfusion.in/" target="_blank" rel="noopener noreferrer">Bookstore <span class="tag-live">Live</span></a>
   <a href="https://hub.prepfusion.in/" target="_blank" rel="noopener noreferrer">Study Hub</a>
   <a href="https://pyq.prepfusion.in/" target="_blank" rel="noopener noreferrer">Practice GATE PYQs <span class="ext">&#8599;</span></a>
@@ -540,22 +736,22 @@
 </a>
 
 <!-- ==================== RANKERS' INTERVIEW PANEL OVERLAY ==================== -->
-<div class="vid-scrim" id="vid-scrim">
-  <div class="vid-sheet" role="dialog" aria-label="Rankers' Interview Panel">
+<dialog class="vid-scrim" id="vid-scrim" aria-labelledby="vid-title">
+  <div class="vid-sheet">
     <div class="vid-sheet-head">
       <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path fill="#e02f2f" d="M21.6 7.2a2.5 2.5 0 0 0-1.7-1.8C18.3 5 12 5 12 5s-6.3 0-7.9.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.7 1.8C5.7 19 12 19 12 19s6.3 0 7.9-.4a2.5 2.5 0 0 0 1.7-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8Z"/><path fill="#fff" d="M10 15V9l5 3-5 3Z"/></svg>
-      <h3>Rankers&rsquo; Interview Panel</h3>
+      <h3 id="vid-title">Rankers&rsquo; Interview Panel</h3>
       <button type="button" class="vid-sheet-x" id="vid-close" aria-label="Close">&times;</button>
     </div>
     <div class="vid-frame-wrap" id="vid-frame-wrap"></div>
-    <p class="rankers-strip-head">All 39 interviews &mdash; tap any card to switch</p>
-    <div class="rankers-strip" id="rankers-strip"></div>
+    <p class="rankers-strip-head" id="rankers-strip-head">All 39 interviews &mdash; tap any card to switch</p>
+    <div class="rankers-strip" id="rankers-strip" aria-labelledby="rankers-strip-head" role="group"></div>
   </div>
-</div>
+</dialog>
 
 <!-- ==================== TESTIMONIAL FULL-TEXT POPUP ==================== -->
-<div class="vid-scrim" id="quote-scrim">
-  <div class="vid-sheet quote-sheet" role="dialog" aria-label="Testimonial">
+<dialog class="vid-scrim" id="quote-scrim" aria-labelledby="quote-modal-name">
+  <div class="vid-sheet quote-sheet">
     <div class="vid-sheet-head">
       <span class="q-av" id="quote-modal-av"></span>
       <h3 id="quote-modal-name"></h3>
@@ -567,7 +763,6 @@
       <em id="quote-modal-role"></em>
     </div>
   </div>
-</div>
-<script src="script.js?v=20260816a" defer></script>
+</dialog>
 </body>
 </html>

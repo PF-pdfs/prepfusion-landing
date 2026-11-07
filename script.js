@@ -5,14 +5,45 @@
      Dark by default (see the blocking inline script in index.html's <head>,
      which already set data-theme before this file even loaded — this just
      wires up the button to flip it). */
+  /* The choice is written to the pf-theme cookie on .prepfusion.in (shared
+     with the Hub and the Store, so it follows the student between sites)
+     and to localStorage (for this host alone, and for previews off
+     prepfusion.in, where that cookie domain can't be set). */
   var THEME_KEY = 'pf-theme';
   var themeBtn = document.getElementById('theme-toggle');
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
+  function writeThemeCookie(t) {
+    var host = location.hostname;
+    var onPf = host === 'prepfusion.in' || /\.prepfusion\.in$/.test(host);
+    try {
+      document.cookie = THEME_KEY + '=' + t + '; Path=/; Max-Age=31536000; SameSite=Lax' +
+        (onPf ? '; Domain=.prepfusion.in' : '') + (location.protocol === 'https:' ? '; Secure' : '');
+    } catch (err) { /* cookies blocked */ }
+  }
+  function syncThemeUi(t) {
+    if (themeMeta) themeMeta.setAttribute('content', t === 'light' ? '#f2f5fa' : '#0a1020');
+    if (themeBtn) {
+      var dark = t !== 'light';
+      themeBtn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+      themeBtn.setAttribute('aria-label', 'Dark mode');
+      themeBtn.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
+    }
+  }
+  var curTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  syncThemeUi(curTheme);
+  /* a choice made here before the cookie existed: carry it over once */
+  if (!/(?:^|;\s*)pf-theme=/.test(document.cookie)) {
+    var stored = null;
+    try { stored = localStorage.getItem(THEME_KEY); } catch (err) {}
+    if (stored === 'light' || stored === 'dark') writeThemeCookie(stored);
+  }
   if (themeBtn) {
     themeBtn.addEventListener('click', function () {
-      var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-      var next = isDark ? 'light' : 'dark';
+      var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', next);
       try { localStorage.setItem(THEME_KEY, next); } catch (err) { /* storage blocked, theme still applies this visit */ }
+      writeThemeCookie(next);
+      syncThemeUi(next);
     });
   }
 
@@ -128,19 +159,30 @@
      domain, same tab, exactly like clicking any other in-site link. These
      are REAL hrefs today too — click one and it actually opens the course
      page, so the flow can be tested end to end right now. */
+  /* The hrefs are real in the HTML already (they work without JS). The
+     course platform's origin can move (see docs/domain-switch.md): the
+     hosting Worker rewrites the HTML and announces the new origin in
+     <meta name="pf-courses-origin">, and courseUrl() applies it to links
+     built here, such as the banner links from banners.json. */
+  var DEFAULT_COURSES = 'https://prepfusion.in';
+  var originMeta = document.querySelector('meta[name="pf-courses-origin"]');
+  var COURSES_ORIGIN = ((originMeta && originMeta.content) || DEFAULT_COURSES).replace(/\/+$/, '');
+  function courseUrl(u) {
+    if (!u || COURSES_ORIGIN === DEFAULT_COURSES) return u;
+    return u.indexOf(DEFAULT_COURSES + '/') === 0 || u === DEFAULT_COURSES ? COURSES_ORIGIN + u.slice(DEFAULT_COURSES.length) : u;
+  }
   var EXT_LINKS = {
-    'free': 'https://prepfusion.in/zero-price-courses',
-    'gate': 'https://prepfusion.in/new-courses?examId=6',
-    'gate-full': 'https://prepfusion.in/new-courses?examId=6',
-    'subjectwise': 'https://prepfusion.in/new-courses?examId=4',
-    'combo': 'https://prepfusion.in/new-courses?examId=5',
-    'placement': 'https://prepfusion.in/new-courses?examId=7',
-    'test': 'https://prepfusion.in/test-series'
+    'free': '/zero-price-courses',
+    'gate': '/new-courses?examId=6',
+    'gate-full': '/new-courses?examId=6',
+    'subjectwise': '/new-courses?examId=4',
+    'combo': '/new-courses?examId=5',
+    'placement': '/new-courses?examId=7',
+    'test': '/test-series'
   };
   document.querySelectorAll('[data-external]').forEach(function (a) {
-    var key = a.getAttribute('data-external');
-    var url = EXT_LINKS[key] || 'https://prepfusion.in/';
-    a.setAttribute('href', url);
+    var path = EXT_LINKS[a.getAttribute('data-external')] || '/';
+    a.setAttribute('href', COURSES_ORIGIN + path);
   });
 
   var INFO_TIP = 'Course pages are still powered by a separate system behind the scenes while the two are being unified. ' +
@@ -242,12 +284,26 @@
   }
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
-    if (morePanel) { morePanel.classList.remove('on'); moreBtn.setAttribute('aria-expanded', 'false'); }
-    setDrawer(false);
+    if (morePanel && morePanel.classList.contains('on')) {
+      morePanel.classList.remove('on'); moreBtn.setAttribute('aria-expanded', 'false');
+      if (morePanel.contains(document.activeElement)) moreBtn.focus();
+    }
+    if (mobileNav && mobileNav.classList.contains('on')) {
+      setDrawer(false);
+      if (burgerBtn) burgerBtn.focus();
+    }
   });
+  /* tabbing out of the More menu closes it */
+  if (morePanel) {
+    morePanel.addEventListener('focusout', function (e) {
+      if (e.relatedTarget && !morePanel.contains(e.relatedTarget) && e.relatedTarget !== moreBtn) {
+        morePanel.classList.remove('on'); moreBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
 
-  /* The fixed header is transparent over the hero artwork; past the hero it
-     needs a solid background or the links sit on top of page content. */
+  /* The floating header gets a deeper shadow once the page has scrolled,
+     so it reads as lifted above the content passing under it. */
   var siteBar = document.getElementById('site-bar');
   if (siteBar) {
     var onScroll = function () {
@@ -320,6 +376,26 @@
   var vidCloseBtn = document.getElementById('vid-close');
   var rankersIndex = 0;
 
+  /* Both overlays are native <dialog>s: showModal() puts them in the top
+     layer, makes the page behind inert and handles Esc. This adds the rest:
+     a click on the dim (the dialog box itself, outside the sheet) closes it,
+     the page stops scrolling underneath, and focus goes back to whatever
+     opened it. */
+  function showDialog(dlg) {
+    if (!dlg || dlg.open) return;
+    var opener = document.activeElement;
+    document.body.style.overflow = 'hidden';
+    dlg.showModal();
+    dlg.addEventListener('close', function onClose() {
+      dlg.removeEventListener('close', onClose);
+      document.body.style.overflow = '';
+      if (opener && opener.focus && document.contains(opener)) opener.focus();
+    });
+  }
+  document.querySelectorAll('dialog.vid-scrim').forEach(function (dlg) {
+    dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+  });
+
   function playRankers(i) {
     rankersIndex = i;
     var v = RANKERS_VIDEOS[i];
@@ -356,19 +432,18 @@
       });
     }
     playRankers(0);
-    vidScrim.classList.add('on');
+    showDialog(vidScrim);
   }
-  function closeRankers() {
-    vidScrim.classList.remove('on');
+  function closeRankers() { if (vidScrim.open) vidScrim.close(); }
+  /* the dialog's close event covers the close button, Esc and the backdrop */
+  vidScrim.addEventListener('close', function () {
     vidWrap.innerHTML = ''; /* unmount so the video actually stops playing */
-  }
+  });
+  var stripHead = document.getElementById('rankers-strip-head');
+  if (stripHead) stripHead.innerHTML = 'All ' + RANKERS_VIDEOS.length + ' interviews &mdash; tap any card to switch';
   if (openRankersBtn) openRankersBtn.addEventListener('click', function (e) { e.preventDefault(); openRankers(); });
   if (openRankersArt) openRankersArt.addEventListener('click', openRankers);
   vidCloseBtn.addEventListener('click', closeRankers);
-  vidScrim.addEventListener('click', function (e) { if (e.target === vidScrim) closeRankers(); });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && vidScrim.classList.contains('on')) closeRankers();
-  });
 
   /* ---------------- mentor teaching-years, computed live ---------------- */
   document.querySelectorAll('[data-teaching-since]').forEach(function (el) {
@@ -381,44 +456,8 @@
     el.innerHTML = '<b>' + years + '+</b>&nbsp;' + label;
   });
 
-  /* ---------------- TITANS vs Pathfinders comparison ----------------
-     Feature list matches PrepFusion's own comparison chart. No prices —
-     the batches differ by support level, not by which is "more expensive". */
-  var TELEGRAM_IC = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#229ED9"/><path fill="#fff" d="m5.4 11.8 12.1-4.7c.6-.2 1 .1.8.9l-2.1 9.7c-.1.6-.5.7-1 .5l-2.9-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.4-4.9c.2-.2 0-.3-.3-.1l-6.7 4.2-2.9-.9c-.6-.2-.6-.6.1-.9Z"/></svg>';
-  var WHATSAPP_IC = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#25D366"/><path fill="#fff" d="M12.03 5.5a6.5 6.5 0 0 0-5.6 9.8L5.5 18.5l3.3-.9a6.5 6.5 0 1 0 3.23-12.1Zm3.8 9.2c-.16.45-.93.86-1.3.9-.33.05-.75.07-1.2-.08a10.6 10.6 0 0 1-1.06-.4c-1.86-.8-3.07-2.68-3.16-2.8-.1-.13-.76-1-.76-1.9s.48-1.35.65-1.53c.16-.18.36-.22.48-.22h.35c.11 0 .27-.04.42.32l.6 1.44c.05.13.08.27.02.43-.06.16-.1.25-.2.38l-.3.35c-.1.1-.2.2-.09.4.11.2.5.83 1.08 1.35.74.66 1.36.87 1.56.97.2.1.32.08.44-.05l.53-.62c.18-.22.34-.18.56-.1l1.35.64c.22.1.37.16.42.25.05.1.05.55-.11 1.0Z"/></svg>';
-  var CMP_ROWS = [
-    { f: 'Video Lectures', t: true, p: true },
-    { f: 'Lecture Notes (PDF)', t: true, p: true },
-    { f: 'Doubt Solving Support', tCell: WHATSAPP_IC + ' WhatsApp group', pCell: TELEGRAM_IC + ' Telegram group' },
-    { f: 'Assignments &amp; Solved PYQs', t: true, p: true },
-    { f: '1:1 Mentorship <span style="opacity:.65;font-weight:400">(bi-weekly live session)</span>', t: true, p: false },
-    { f: 'VLSI Placement Course', t: true, p: false },
-    { f: 'Post-GATE Guidance', t: true, p: false },
-    { f: 'Test Series', t: true, p: false }
-  ];
-  var cmpBody = document.getElementById('cmp-body');
-  if (cmpBody) {
-    var yes = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
-    var no = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
-    CMP_ROWS.forEach(function (r) {
-      var tr = document.createElement('tr');
-      var tCellHtml = r.tCell ? '<span class="cmp-chip">' + r.tCell + '</span>' : yes;
-      var pCellHtml = r.pCell ? '<span class="cmp-chip">' + r.pCell + '</span>' : (r.p ? yes : no);
-      var tClass = r.tCell ? '' : (r.t ? 'yes' : 'no');
-      var pClass = r.pCell ? '' : (r.p ? 'yes' : 'no');
-      tr.innerHTML =
-        '<th scope="row">' + r.f + '</th>' +
-        '<td class="hotcol ' + tClass + '">' + tCellHtml + '</td>' +
-        '<td class="' + pClass + '">' + pCellHtml + '</td>';
-      cmpBody.appendChild(tr);
-    });
-    var validityTr = document.createElement('tr');
-    validityTr.innerHTML =
-      '<th scope="row">Course Validity</th>' +
-      '<td class="hotcol val">3 months longer</td>' +
-      '<td class="val">Runs through the exam</td>';
-    cmpBody.appendChild(validityTr);
-  }
+  /* The TITANS vs Pathfinders comparison is plain HTML now (index.html,
+     #batches), copied from the brochure, so it shows without JS. */
 
   /* ---------------- testimonials carousel ----------------
      All of them, condensed from the live site's own testimonial wall. */
@@ -447,14 +486,9 @@
     document.getElementById('quote-modal-text').textContent = q.t;
     document.getElementById('quote-modal-role').textContent = q.r;
     document.getElementById('quote-modal-stars').innerHTML = star + star + star + star + star;
-    quoteScrim.classList.add('on');
+    showDialog(quoteScrim);
   }
-  function closeQuote() { quoteScrim.classList.remove('on'); }
-  if (quoteCloseBtn) quoteCloseBtn.addEventListener('click', closeQuote);
-  if (quoteScrim) quoteScrim.addEventListener('click', function (e) { if (e.target === quoteScrim) closeQuote(); });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && quoteScrim && quoteScrim.classList.contains('on')) closeQuote();
-  });
+  if (quoteCloseBtn) quoteCloseBtn.addEventListener('click', function () { quoteScrim.close(); });
 
   if (qEl) {
     function quoteCard(q) {
@@ -462,7 +496,6 @@
       b.className = 'quote';
       b.tabIndex = 0;
       b.setAttribute('role', 'button');
-      b.setAttribute('aria-label', 'Read the full testimonial from ' + q.n);
       b.innerHTML =
         '<span class="stars" aria-label="5 out of 5">' + star + star + star + star + star + '</span>' +
         '<p>' + q.t + '</p>' +
@@ -478,7 +511,14 @@
        exactly one set's width — since the two sets are identical, that jump
        is invisible, giving an infinite loop with no easing/reset stutter. */
     QUOTES.forEach(function (q) { qEl.appendChild(quoteCard(q)); });
-    QUOTES.forEach(function (q) { qEl.appendChild(quoteCard(q)); });
+    /* the second set is only there for the loop: hidden from screen readers
+       and skipped by Tab, so each testimonial is announced once */
+    QUOTES.forEach(function (q) {
+      var c = quoteCard(q);
+      c.setAttribute('aria-hidden', 'true');
+      c.tabIndex = -1;
+      qEl.appendChild(c);
+    });
   }
 
   var qPrev = document.getElementById('q-prev');
@@ -488,10 +528,25 @@
   var qPaused = false;
   var qResumeTimer = null;
 
+  /* qStopped: the pause button (stays until pressed again).
+     qPaused: hover, focus, touch or a manual scroll (lifts by itself). */
+  var qStopped = false;
+  var qPauseBtn = document.getElementById('q-pause');
   function pauseAuto(ms) {
     qPaused = true;
     clearTimeout(qResumeTimer);
     qResumeTimer = setTimeout(function () { qPaused = false; }, ms || 2600);
+  }
+  if (qPauseBtn) {
+    if (reduceMotion) {
+      qPauseBtn.parentNode.hidden = true; /* it never moves on its own */
+    } else {
+      qPauseBtn.addEventListener('click', function () {
+        qStopped = !qStopped;
+        qPauseBtn.setAttribute('aria-pressed', qStopped ? 'true' : 'false');
+        qPauseBtn.querySelector('.q-pause-label').textContent = qStopped ? 'Play scrolling' : 'Pause scrolling';
+      });
+    }
   }
 
   function scrollQuotes(dir) {
@@ -528,7 +583,7 @@
     var qPos = qEl.scrollLeft;
     (function autoScroll() {
       var half = qEl.scrollWidth / 2;
-      if (qPaused) {
+      if (qPaused || qStopped) {
         /* the reader is scrolling it themselves — follow, don't fight */
         qPos = qEl.scrollLeft;
       } else if (half > 0) {
@@ -549,7 +604,7 @@
   var FALLBACK_BANNERS = [
     {
       tag: 'Admissions open',
-      title: 'GATE 2027 TITANS Batch',
+      title: 'Full GATE Batches: TITANS',
       text: 'Full syllabus, live guidance, 1:1 mentorship and the complete test series.',
       cta: 'Explore the batch',
       link: 'https://prepfusion.in/new-courses?examId=6'
@@ -569,6 +624,39 @@
       link: 'https://prepfusion.in/new-courses?examId=7'
     }
   ];
+  /* Banner graphics: tools/optimize-images.mjs writes AVIF/WebP/JPEG copies
+     of every file in assets/img/banners/ at 480/800/1200px, to
+     assets/img/opt/banners/<name>-<width>.<ext>. A banner uploaded through
+     the CMS has no copies until that script runs again, so if a copy fails
+     to load the slide falls back to the original upload. */
+  function bannerPicture(b, i, hasCopy) {
+    var img = document.createElement('img');
+    img.alt = b.title || 'Banner';
+    img.loading = i === 0 ? 'eager' : 'lazy';
+    img.decoding = 'async';
+    if (i === 0) img.setAttribute('fetchpriority', 'high');
+    var m = /^(?:\.\/)?assets\/img\/banners\/([^/]+)\.(?:jpe?g|png|webp)$/i.exec(b.image);
+    if (!m) { img.src = b.image; return img; }
+    var base = 'assets/img/opt/banners/' + m[1];
+    var sizes = hasCopy ? '(max-width: 720px) calc(100vw - 32px), 560px' : '(max-width: 1160px) calc(100vw - 48px), 1112px';
+    var set = function (ext) { return [480, 800, 1200].map(function (w) { return base + '-' + w + '.' + ext + ' ' + w + 'w'; }).join(', '); };
+    var pic = document.createElement('picture');
+    ['avif', 'webp'].forEach(function (ext) {
+      var s = document.createElement('source');
+      s.type = 'image/' + ext; s.srcset = set(ext); s.sizes = sizes;
+      pic.appendChild(s);
+    });
+    img.sizes = sizes; img.srcset = set('jpg'); img.src = base + '-800.jpg';
+    img.addEventListener('error', function onErr() {
+      img.removeEventListener('error', onErr);
+      pic.querySelectorAll('source').forEach(function (s) { s.remove(); });
+      img.removeAttribute('srcset'); img.removeAttribute('sizes');
+      img.src = b.image;
+    });
+    pic.appendChild(img);
+    return pic;
+  }
+
   function renderBanners(list) {
     var bTrack = document.getElementById('banner-track');
     var bNav = document.getElementById('banner-nav');
@@ -588,8 +676,9 @@
       var hasImage = Boolean(b.image);
       var hasCopy = Boolean(b.title || b.tag || b.text || b.cta);
       a.className = 'banner-slide' + (hasImage ? '' : ' no-img') + (hasCopy ? '' : ' no-copy') + (i === 0 ? ' on' : '');
-      a.href = b.link || '#0';
+      a.href = courseUrl(b.link) || '#0';
       a.setAttribute('aria-hidden', i === 0 ? 'false' : 'true');
+      if (i !== 0) a.tabIndex = -1;
 
       if (hasCopy) {
         var copy = document.createElement('div');
@@ -602,13 +691,9 @@
         a.appendChild(copy);
       }
       if (hasImage) {
-        var img = document.createElement('img');
-        img.src = b.image;
-        img.alt = b.title || 'Banner';
-        img.loading = i === 0 ? 'eager' : 'lazy';
         var figure = document.createElement('div');
         figure.className = 'bs-figure';
-        figure.appendChild(img);
+        figure.appendChild(bannerPicture(b, i, hasCopy));
         a.appendChild(figure);
       }
       bTrack.appendChild(a);
@@ -629,22 +714,44 @@
         var on = n === bIndex;
         el.classList.toggle('on', on);
         el.setAttribute('aria-hidden', on ? 'false' : 'true');
+        el.tabIndex = on ? 0 : -1;
       });
       bNav.querySelectorAll('.banner-dot').forEach(function (el, n) {
         el.setAttribute('aria-current', n === bIndex ? 'true' : 'false');
       });
     }
+    /* Rotation stops while the pointer or keyboard focus is on the banners,
+       and for good once the pause button is pressed (or under reduced
+       motion, where it never starts). */
+    var bWrap = bTrack.closest('.banners') || bTrack;
+    var bPauseBtn = document.getElementById('banner-pause');
+    var bStopped = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var bHold = false;
     function restart() {
       clearInterval(bTimer);
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && list.length > 1) {
+      if (!bStopped && !bHold && list.length > 1) {
         bTimer = setInterval(function () { show(bIndex + 1); }, 6000);
       }
+    }
+    function syncPause() {
+      if (!bPauseBtn) return;
+      bPauseBtn.setAttribute('aria-pressed', bStopped ? 'true' : 'false');
+      bPauseBtn.setAttribute('aria-label', bStopped ? 'Play the banners' : 'Pause the banners');
+    }
+    if (bPauseBtn) {
+      if (list.length < 2) bPauseBtn.hidden = true;
+      syncPause();
+      bPauseBtn.addEventListener('click', function () { bStopped = !bStopped; syncPause(); restart(); });
     }
     document.getElementById('banner-prev').addEventListener('click', function () { show(bIndex - 1); restart(); });
     document.getElementById('banner-next').addEventListener('click', function () { show(bIndex + 1); restart(); });
     /* pause while the pointer is over the banner so a slide can be read/clicked */
-    bTrack.addEventListener('mouseenter', function () { clearInterval(bTimer); });
-    bTrack.addEventListener('mouseleave', restart);
+    bTrack.addEventListener('mouseenter', function () { bHold = true; clearInterval(bTimer); });
+    bTrack.addEventListener('mouseleave', function () { bHold = false; restart(); });
+    bWrap.addEventListener('focusin', function () { bHold = true; clearInterval(bTimer); });
+    bWrap.addEventListener('focusout', function (e) {
+      if (!e.relatedTarget || !bWrap.contains(e.relatedTarget)) { bHold = false; restart(); }
+    });
 
     /* touch swipe — slides are crossfaded via .on, not a real scroll
        container, so swiping has to be read from raw touch deltas. A tap
@@ -700,7 +807,9 @@
   if (catPrev) catPrev.addEventListener('click', function () { scrollCats(-1); });
   if (catNext) catNext.addEventListener('click', function () { scrollCats(1); });
 
-  fetch('banners.json', { cache: 'no-cache' })
+  /* Default cache mode, so this reuses the <link rel="preload"> in the head
+     instead of fetching the file a second time. */
+  fetch('banners.json', { credentials: 'same-origin' })
     .then(function (r) { if (!r.ok) throw new Error('no banners.json'); return r.json(); })
     .then(function (data) {
       var list = (data && data.banners && data.banners.length) ? data.banners : FALLBACK_BANNERS;

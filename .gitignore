@@ -1,0 +1,9 @@
+# Claude Code: share the design skills, keep per-machine state (worktrees, settings) out.
+.claude/*
+!.claude/skills/
+
+# Dev-only tooling (tools/ image script) and Wrangler local state.
+node_modules/
+.wrangler/
+.dev.vars
+.dev.vars.*

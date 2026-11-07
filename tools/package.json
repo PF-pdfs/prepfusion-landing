@@ -1,0 +1,12 @@
+{
+  "name": "prepfusion-landing-tools",
+  "private": true,
+  "description": "Dev-only, run by hand. The site itself has no build step and no dependencies.",
+  "type": "module",
+  "scripts": {
+    "images": "node optimize-images.mjs"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.4"
+  }
+}

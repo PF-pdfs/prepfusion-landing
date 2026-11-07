@@ -1,0 +1,38 @@
+# prepfusion-landing-site: serves this repo from Cloudflare (Workers static assets).
+#
+# Separate from cloudflare/wrangler.toml (prepfusion-landing-apex, the apex
+# redirect), which this does not touch. No routes and no custom domains here:
+# adding one is the owner's switch, done in the dashboard (docs/domain-switch.md).
+# GitHub Pages keeps serving go.prepfusion.in until then.
+#
+# Deploys: Workers Builds (dashboard -> Workers -> this Worker -> Settings ->
+# Build -> connect PF-pdfs/prepfusion-landing, branch main, deploy command
+# `npx wrangler deploy`, no build command). Every push to main, including the
+# admin portal's banners.json commits, then redeploys with no secret in the repo.
+
+name = "prepfusion-landing-site"
+main = "hosting/worker.js"
+compatibility_date = "2025-09-01"
+
+workers_dev = true
+preview_urls = true
+
+# Variables live in the DASHBOARD (Worker -> Settings -> Variables and
+# Secrets), not here. Every push to main redeploys from this file, and a
+# [vars] block here would reset the owner's switch on the next banner commit.
+# keep_vars stops a deploy from wiping them. Unset means the defaults in
+# hosting/worker.js:
+#
+#   SITE_ORIGIN         public origin           default https://go.prepfusion.in
+#   COURSES_ORIGIN      course platform origin  default https://prepfusion.in
+#   CANONICAL_REDIRECT  "on" 301s other hosts   default off
+keep_vars = true
+
+[assets]
+# The repo root is the site. .assetsignore keeps the Worker source, tooling,
+# docs and GitHub-only files out of the upload.
+directory = "."
+binding = "ASSETS"
+# The Worker runs first so it can add the cache policy, the canonical
+# redirect and the SITE_ORIGIN rewrite to every response.
+run_worker_first = true
