@@ -87,30 +87,34 @@ from `.claude/skills/studyhub-design`, the landing floor from `.claude/skills/sc
 - The canvas animation and the marquee each run a `requestAnimationFrame` loop from first paint.
 - No canonical, no JSON-LD, Open Graph hard-coded to go.prepfusion.in in five places.
 
-## Chosen direction: "The front desk"
+## Chosen direction (revised): improve the original, don't replace it
 
-**One idea:** the page is the front desk of a coaching institute. The first thing it asks is the one
-thing every visitor already knows about themselves, which GATE paper they're writing (EC, EE or IN),
-and it answers with that branch's two batches and one button. Everything below answers the questions
-a careful student asks next, in the order they ask them: what's open right now, how the two batches
-differ, what else there is (free subjects, single subjects, placements, tests), who has studied here
-and what they say, which app it runs in, and the fine print.
+A first pass rebuilt the page in the Store's design system. On review it changed too much: the
+wording, the order of the sections, the hero and the rolling testimonials had all been chosen with
+care, and the page is meant to feel like prepfusion.in, the main site, rather than the Hub. That pass
+was dropped. The page is now the original, with these changes only:
 
-**Why it fits:** students arrive knowing their branch, not our batch names. EC and EE get mixed up,
-so every branch-specific link says the branch in words ("Only for GATE Electrical (EE)"). IN has no
-separate batch, and the page now says so instead of letting an IN student buy an EC batch by mistake.
-The proof is the founders' own AIRs, next to their photos, in the hero.
+- **Header:** a floating, rounded, card-coloured bar like prepfusion.in's, with the round logo beside
+  the wordmark. The same links, plus Brochures in the More menu. 44px theme and menu buttons.
+- **Hero:** the same kicker, headline ("Setting a New Standard for GATE & VLSI Preparation"), lede and
+  proof cards, plus two buttons: Explore Our Courses and Read the brochures (brochure.prepfusion.in).
+- **Full GATE Batches** (new section, after Explore Our Courses): the TITANS vs Pathfinders comparison
+  copied from the batch brochures (features and validity), who each batch is for, the ECE and EE
+  brochures and orientation videos, each labelled with its branch, and one link to the batch pages.
+  The old, shorter comparison inside the FAQ now points here.
+- **Testimonials:** the rolling strip stays, with a pause button. The copy that makes the loop seamless
+  is hidden from screen readers and from Tab.
+- **Banners:** responsive AVIF/WebP/JPEG copies, a pause button, no rotation while hovered or
+  focused, larger dot targets. `banners.json` is unchanged.
+- **Overlays:** the Rankers' panel and the full testimonial are native `<dialog>` elements: Esc, backdrop
+  click, and focus returns to the button that opened them.
+- **Theme:** dark by default; the choice is shared through the `pf-theme` cookie on .prepfusion.in.
+- **Speed and SEO:** self-hosted Sora and Inter, optimised mentor photos, real hrefs in the HTML,
+  canonical, Open Graph and JSON-LD, all rewritten by the hosting Worker when the origin moves.
 
-**Visual system:** the Store's tokens and components exactly (header, footer, pill buttons, radius-18
-cards, FAQ rows, dialogs, focus ring), dark by default, light by choice. The hero carries the Store's
-soft blue glow. Blue (`--wordmark` / `--btn`) is the action colour; yellow (`--accent-ink`) marks AIRs
-only. The `--deep` navy appears once, as the closing call to action. Nothing moves on its own: one
-short entrance on load, a banner that changes only when asked, all of it off under reduced motion.
+Wording is unchanged except the new section's copy, the two hero buttons and the FAQ pointer.
 
-**Refused:** eyebrows, uppercase, decorative monospace, identical card grids, marquees, auto-rotating
-banners, star ratings without data, em dashes, the hero-metric template.
+## Lighthouse, mobile, local (after)
 
-**Claims used** (only what the page, `banners.json` or the Hub already state): the founders' AIRs
-(Himanshu Agarwal AIR 27 EC, AIR 45 IN; Anish Saha AIR 19 IN, AIR 66 EE), the named student results and
-quotes already on the page, the Rankers' interview list, the batch feature list, "1000+ hours" (from
-the batch banners), and the existing FAQ answers.
+Performance 89 to 90, accessibility 100, best practices 100, SEO 100. LCP 3.5 s (the first banner,
+which arrives through banners.json), CLS 0.001, TBT about 130 ms, 407 KiB in 20 requests.
