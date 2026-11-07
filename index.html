@@ -102,8 +102,8 @@
 
 <!-- ?v= is the cache key: bump it by hand whenever styles.css or script.js
      changes (no build step). Versioned URLs can be cached for a long time. -->
-<link rel="stylesheet" href="styles.css?v=20261107b" />
-<script src="script.js?v=20261107b" defer></script>
+<link rel="stylesheet" href="styles.css?v=20261107c" />
+<script src="script.js?v=20261107c" defer></script>
 
 <!-- Prefetch (not prerender) the Hub and the Store when a link to them is
      hovered or pressed. -->
@@ -195,8 +195,8 @@
             experience designed to help you build strong fundamentals and achieve your goals.
           </p>
           <div class="hero-cta">
-            <a class="btn btn-y btn-lg" href="#courses">Explore Our Courses</a>
-            <a class="btn btn-ghost btn-lg" href="https://brochure.prepfusion.in/" target="_blank" rel="noopener noreferrer">Read the brochures <span class="ext" aria-hidden="true">&#8599;</span></a>
+            <a class="btn btn-y btn-lg" href="#batches">See the full GATE batches</a>
+            <a class="btn btn-ghost btn-lg" href="#courses">Explore Our Courses</a>
           </div>
         </div>
 
@@ -265,73 +265,113 @@
   </section>
 
   <!-- ---------------- FULL GATE BATCHES ----------------
-       The feature comparison is copied from the batch brochures on
-       brochure.prepfusion.in (GATE ECE / GATE EE, "Titans vs Pathfinders
-       Batch: features comparison"). When the brochure changes, update this
-       table to match. No prices here: they change with offers, and the batch
-       pages and brochures carry them. -->
-  <section class="sec wrap" id="batches">
-    <h2 class="sh">Full GATE Batches</h2>
-    <p class="sub">TITANS and Pathfinders, for GATE ECE and GATE EE. Both cover the complete syllabus with the same lectures; TITANS adds mentorship, tests, the PYQ hard copy and post-GATE support.</p>
+       The page's main job: get a GATE student to the right batch page.
+       Copy follows the batch brochures and the Hub's course pages
+       (PrepFusion-StudyHub-Website, scripts/consolidate-courses.js, PREMIUM.gate).
+       No dates and no prices here, on purpose: validity is said relative to
+       the exam ("until your GATE exam", "+3 months"), and prices live on the
+       batch pages. When a new exam year's batches open, change the four
+       course links below (data-batch-link) to the new batch pages.
+       The ECE/EE switch is two radio buttons and CSS (:has), so it works
+       without JavaScript; with no :has support both branches show. -->
+  <section class="sec wrap batches" id="batches" aria-labelledby="batches-h">
+    <h2 class="sh" id="batches-h">Full GATE Batches</h2>
+    <p class="sub">Every subject of your branch, taught end to end by Himanshu Agarwal and Anish Saha. Two batches, the same lectures; TITANS adds the support around them.</p>
 
-    <div class="cmp-wrap" role="region" aria-label="TITANS and Pathfinders features compared" tabindex="0">
-      <table class="cmp">
-        <thead>
-          <tr>
-            <th scope="col">Features</th>
-            <th scope="col" class="hot">TITANS<span class="flag">Recommended</span></th>
-            <th scope="col">Pathfinders</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><th scope="row">High quality video lectures</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
-          <tr><th scope="row">Printable lecture notes &amp; slides</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
-          <tr><th scope="row">General guidance &amp; preparation resource document</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
-          <tr><th scope="row">Personalized doubt-solving support</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
-          <tr><th scope="row">Personalized WhatsApp message support</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
-          <tr><th scope="row">Assignments &amp; important PYQ solutions</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
-          <tr><th scope="row">Revision videos &amp; one-shots</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
-          <tr><th scope="row">PYQ book (soft copy)</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
-          <tr><th scope="row">Bi-weekly 1:1 mentorship sessions</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
-          <tr><th scope="row">Test series</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
-          <tr><th scope="row">PYQ book (hard copy)</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
-          <tr><th scope="row">VLSI placement preparation course</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
-          <tr><th scope="row">M.Tech/MS admission preparation</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
-          <tr><th scope="row">PrepFusion Guide Platform</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
-          <tr><th scope="row">Validity</th><td class="hotcol val">30 June 2028</td><td class="val">31 March 2028</td></tr>
-        </tbody>
-      </table>
-    </div>
+    <fieldset class="branch-switch">
+      <legend>Your GATE paper</legend>
+      <input type="radio" name="branch" id="br-ece" value="ece" checked />
+      <label for="br-ece">ECE <span>Electronics &amp; Communication</span></label>
+      <input type="radio" name="branch" id="br-ee" value="ee" />
+      <label for="br-ee">EE <span>Electrical</span></label>
+    </fieldset>
 
-    <div class="who">
-      <p><b>TITANS:</b> college students and first-time aspirants who want mentorship, tests, the PYQ hard copy and post-GATE support.</p>
-      <p><b>Pathfinders:</b> droppers who already know the process and mainly need lectures, notes and doubt support.</p>
-    </div>
-
-    <div class="branch-cards">
-      <div class="branch-card">
-        <h3>GATE ECE</h3>
-        <p class="branch-for">Only for GATE Electronics and Communication (EC)</p>
-        <div class="branch-act">
-          <a class="btn" href="https://brochure.prepfusion.in/ec" target="_blank" rel="noopener noreferrer">Read the ECE brochure <span class="ext" aria-hidden="true">&#8599;</span></a>
-          <a class="btn" href="https://youtu.be/LO-BVr5wzEA" target="_blank" rel="noopener noreferrer">Watch the ECE orientation <span class="ext" aria-hidden="true">&#8599;</span></a>
+    <div class="tiers">
+      <article class="tier tier-titans">
+        <div class="tier-head">
+          <span class="tier-flag">Full support</span>
+          <h3>TITANS Batch</h3>
+          <p class="tier-for">For college students and first-time aspirants who want mentorship, tests, the PYQ hard copy and post-GATE support.</p>
         </div>
-      </div>
-      <div class="branch-card">
-        <h3>GATE EE</h3>
-        <p class="branch-for">Only for GATE Electrical (EE)</p>
-        <div class="branch-act">
-          <a class="btn" href="https://brochure.prepfusion.in/ee" target="_blank" rel="noopener noreferrer">Read the EE brochure <span class="ext" aria-hidden="true">&#8599;</span></a>
-          <a class="btn" href="https://youtu.be/6vRRv1iaAKg" target="_blank" rel="noopener noreferrer">Watch the EE orientation <span class="ext" aria-hidden="true">&#8599;</span></a>
+        <p class="tier-plus">Everything in Pathfinders, plus:</p>
+        <ul class="tier-list">
+          <li>Bi-weekly 1:1 mentorship sessions</li>
+          <li>Premium test series: 100+ tests, 2,000+ questions</li>
+          <li>GATE PYQ hard-copy set, 5 books, delivered free</li>
+          <li>VLSI placement preparation course</li>
+          <li>M.Tech/MS admission preparation</li>
+          <li>PrepFusion Guide platform</li>
+        </ul>
+        <p class="tier-valid"><b>Access:</b> until your GATE exam <em>+ 3 months extra</em> for M.Tech/MS interviews</p>
+        <a class="btn btn-y btn-lg tier-cta for-ece" data-batch-link data-course href="https://prepfusion.in/new-courses/115-gate-2028-titans-batch-electronics-communication-engineering-ece-full-subscription">View the TITANS ECE batch <span aria-hidden="true">&rarr;</span></a>
+        <a class="btn btn-y btn-lg tier-cta for-ee" data-batch-link data-course href="https://prepfusion.in/new-courses/116-gate-2028-titans-batch-electrical-engineering-ee-full-subscription">View the TITANS EE batch <span aria-hidden="true">&rarr;</span></a>
+      </article>
+
+      <article class="tier">
+        <div class="tier-head">
+          <span class="tier-flag tier-flag-soft">Core batch</span>
+          <h3>Pathfinders Batch</h3>
+          <p class="tier-for">For droppers who already know the process and mainly need lectures, notes and doubt support.</p>
         </div>
+        <ul class="tier-list">
+          <li>1000+ hours of recorded lectures, the full syllabus</li>
+          <li>Printable lecture notes &amp; slides</li>
+          <li>Personal doubt-solving and WhatsApp support</li>
+          <li>Assignments &amp; important PYQ solutions</li>
+          <li>Revision videos &amp; one-shots</li>
+          <li>GATE PYQ book (soft copy)</li>
+        </ul>
+        <p class="tier-valid"><b>Access:</b> until your GATE exam</p>
+        <a class="btn btn-lg tier-cta tier-cta-alt for-ece" data-batch-link data-course href="https://prepfusion.in/new-courses/74-gate-2028-full-course-ece-the-pathfinders">View the Pathfinders ECE batch <span aria-hidden="true">&rarr;</span></a>
+        <a class="btn btn-lg tier-cta tier-cta-alt for-ee" data-batch-link data-course href="https://prepfusion.in/new-courses/75-gate-2028-full-course-ee-the-pathfinders">View the Pathfinders EE batch <span aria-hidden="true">&rarr;</span></a>
+      </article>
+    </div>
+
+    <div class="batch-more">
+      <p class="for-ece">
+        <a href="https://brochure.prepfusion.in/ec" target="_blank" rel="noopener noreferrer">GATE ECE brochure <span aria-hidden="true">&#8599;</span></a>
+        <a href="https://youtu.be/LO-BVr5wzEA" target="_blank" rel="noopener noreferrer">GATE ECE orientation video <span aria-hidden="true">&#8599;</span></a>
+      </p>
+      <p class="for-ee">
+        <a href="https://brochure.prepfusion.in/ee" target="_blank" rel="noopener noreferrer">GATE EE brochure <span aria-hidden="true">&#8599;</span></a>
+        <a href="https://youtu.be/6vRRv1iaAKg" target="_blank" rel="noopener noreferrer">GATE EE orientation video <span aria-hidden="true">&#8599;</span></a>
+      </p>
+      <p><a href="https://prepfusion.in/new-courses?examId=6" data-external="gate-full" data-course>See every full GATE batch <span aria-hidden="true">&rarr;</span></a></p>
+    </div>
+
+    <details class="cmp-details">
+      <summary>Compare every feature, side by side</summary>
+      <div class="cmp-wrap" role="region" aria-label="TITANS and Pathfinders features compared" tabindex="0">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th scope="col">Features</th>
+              <th scope="col" class="hot">TITANS</th>
+              <th scope="col">Pathfinders</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">High quality video lectures</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">Printable lecture notes &amp; slides</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">General guidance &amp; preparation resource document</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">Personalized doubt-solving support</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">Personalized WhatsApp message support</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">Assignments &amp; important PYQ solutions</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">Revision videos &amp; one-shots</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">PYQ book (soft copy)</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td></tr>
+            <tr><th scope="row">Bi-weekly 1:1 mentorship sessions</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
+            <tr><th scope="row">Test series</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
+            <tr><th scope="row">PYQ book (hard copy, 5-book set delivered free)</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
+            <tr><th scope="row">VLSI placement preparation course</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
+            <tr><th scope="row">M.Tech/MS admission preparation</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
+            <tr><th scope="row">PrepFusion Guide platform</th><td class="hotcol yes"><svg class="ck" role="img" aria-label="Included" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></td><td class="no"><svg class="ck" role="img" aria-label="Not included" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></td></tr>
+            <tr><th scope="row">Access</th><td class="hotcol val">Until your GATE exam + 3 months</td><td class="val">Until your GATE exam</td></tr>
+          </tbody>
+        </table>
       </div>
-    </div>
-    <div class="batches-cta">
-      <a class="btn btn-y btn-lg" href="https://prepfusion.in/new-courses?examId=6" data-external="gate-full" data-course>See batches and prices</a>
-      <p class="fine">Prices, offers and the exact validity are on each batch page and in the brochure. IN is covered through the subjects it shares with ECE and EE; there is no separate IN batch.</p>
-    </div>
+    </details>
+    <p class="fine">Prices and current offers are on each batch page. IN is covered through the subjects it shares with ECE and EE; there is no separate IN batch.</p>
   </section>
-
 
   <!-- ---------------- TESTIMONIALS ---------------- -->
   <section class="sec wrap">
@@ -509,7 +549,7 @@
         <summary>What&rsquo;s the difference between TITANS and Pathfinders batches?</summary>
         <div class="a">
           <p>Both cover the complete GATE syllabus with the same lecture quality. TITANS is the full-support batch, with placement prep, guidance and the test series built in.</p>
-          <p>See the full feature comparison in <a href="#batches">Full GATE batches</a> above, or read the <a href="https://brochure.prepfusion.in/ec" target="_blank" rel="noopener noreferrer">ECE brochure</a> and the <a href="https://brochure.prepfusion.in/ee" target="_blank" rel="noopener noreferrer">EE brochure</a>.</p>
+          <p>See the full feature comparison in <a href="#batches">Full GATE Batches</a> above, or read the <a href="https://brochure.prepfusion.in/ec" target="_blank" rel="noopener noreferrer">ECE brochure</a> and the <a href="https://brochure.prepfusion.in/ee" target="_blank" rel="noopener noreferrer">EE brochure</a>.</p>
         </div>
       </details>
       <details>
@@ -545,7 +585,7 @@
       </details>
       <details>
         <summary>How long do I keep access?</summary>
-        <div class="a"><p>Paid batches list an explicit validity date rather than a rolling subscription &mdash; TITANS runs longer than Pathfinders specifically so it covers the post-result window. Free courses have lifetime access to the videos and notes.</p></div>
+        <div class="a"><p>Pathfinders runs until your GATE exam. TITANS runs 3 months longer, so it covers the post-result window for M.Tech/MS interviews and admissions. Free courses have lifetime access to the videos and notes.</p></div>
       </details>
       <details>
         <summary>Is the test series close to the real paper?</summary>

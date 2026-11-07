@@ -97,11 +97,12 @@ was dropped. The page is now the original, with these changes only:
 - **Header:** a floating, rounded, card-coloured bar like prepfusion.in's, with the round logo beside
   the wordmark. The same links, plus Brochures in the More menu. 44px theme and menu buttons.
 - **Hero:** the same kicker, headline ("Setting a New Standard for GATE & VLSI Preparation"), lede and
-  proof cards, plus two buttons: Explore Our Courses and Read the brochures (brochure.prepfusion.in).
-- **Full GATE Batches** (new section, after Explore Our Courses): the TITANS vs Pathfinders comparison
-  copied from the batch brochures (features and validity), who each batch is for, the ECE and EE
-  brochures and orientation videos, each labelled with its branch, and one link to the batch pages.
-  The old, shorter comparison inside the FAQ now points here.
+  proof cards, plus two buttons: See the full GATE batches and Explore Our Courses.
+- **Full GATE Batches** (new section, after Explore Our Courses), the page's main call to action: an
+  ECE/EE switch, then a TITANS card and a Pathfinders card, each with who it is for, what it includes
+  and a button straight to that branch's batch page. Copy follows the brochures and the Hub's course
+  pages. No dates or prices: access is "until your GATE exam", and TITANS gets "+ 3 months extra". The
+  full feature table sits in a "Compare every feature" disclosure; the FAQ points here.
 - **Testimonials:** the rolling strip stays, with a pause button. The copy that makes the loop seamless
   is hidden from screen readers and from Tab.
 - **Banners:** responsive AVIF/WebP/JPEG copies, a pause button, no rotation while hovered or
