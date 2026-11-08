@@ -841,7 +841,7 @@ h1 .hl { color: var(--accent); }
    ========================================================================= */
 .proof-card.ranks-card { grid-template-columns: minmax(0,1fr); gap: 10px; }
 .proof-ranks-head { font: 650 13.5px var(--sans); color: #fff; }
-.rank-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.rank-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
 .rank-chips em {
   font-style: normal; font: 700 11.5px/1 var(--mono); letter-spacing: .01em;
   color: var(--accent); background: rgba(255,207,45,.12);
