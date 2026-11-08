@@ -848,6 +848,7 @@ h1 .hl { color: var(--accent); }
   border: 1px solid rgba(255,207,45,.28); padding: 5px 7px; border-radius: 6px;
   font-variant-numeric: tabular-nums;
 }
+.rank-note { font: 500 12.5px/1.4 var(--sans); color: var(--hero-soft); }
 .rank-chips em.more { color: var(--hero-soft); background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.16); }
 
 /* =========================================================================
